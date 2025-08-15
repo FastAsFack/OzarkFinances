@@ -138,7 +138,6 @@ jobs:
     
     environment:
       name: production
-      url: http://${{ secrets.RASPBERRY_PI_HOST }}:5000
     
     steps:
     - name: 📥 Checkout Code
