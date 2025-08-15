@@ -23,11 +23,19 @@ RUN groupadd --gid 1000 appuser && \
 # =============================================================================
 FROM base as dependencies
 
-# Install system dependencies
+# Install system dependencies needed for Python packages
 RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     build-essential \
     sqlite3 \
+    libjpeg-dev \
+    zlib1g-dev \
+    libfreetype6-dev \
+    liblcms2-dev \
+    libopenjp2-7-dev \
+    libtiff5-dev \
+    libwebp-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -36,8 +44,9 @@ WORKDIR /app
 # Copy requirements first (for better Docker layer caching)
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies with specific flags for ARM
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
 # =============================================================================
 # STAGE 3: Application
