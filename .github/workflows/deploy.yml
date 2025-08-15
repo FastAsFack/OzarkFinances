@@ -34,8 +34,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  RASPBERRY_PI_HOST: ${{ secrets.RASPBERRY_PI_HOST }}
-  RASPBERRY_PI_USER: ${{ secrets.RASPBERRY_PI_USER }}
 
 # =============================================================================
 # JOBS
