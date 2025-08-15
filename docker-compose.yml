@@ -1,0 +1,157 @@
+# Ozark Finances - Docker Compose Configuration
+# Production deployment for Raspberry Pi 3B+
+# Created: August 15, 2025
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # MAIN APPLICATION SERVICE
+  # =============================================================================
+  ozark-finances:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ozark-finances-app
+    restart: unless-stopped
+    
+    # Port mapping
+    ports:
+      - "5000:5000"
+    
+    # Environment variables
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - DATABASE_PATH=/app/data
+      - UPLOAD_FOLDER=/app/uploads
+      - GENERATED_FOLDER=/app/generated
+    
+    # Volume mounts for data persistence
+    volumes:
+      - ozark_data:/app/data
+      - ozark_uploads:/app/uploads
+      - ozark_generated:/app/generated
+      - ozark_logs:/app/logs
+    
+    # Resource limits (optimized for Raspberry Pi 3B+)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Network
+    networks:
+      - ozark-network
+
+  # =============================================================================
+  # BACKUP SERVICE (Optional - runs daily backups)
+  # =============================================================================
+  ozark-backup:
+    image: alpine:latest
+    container_name: ozark-finances-backup
+    restart: unless-stopped
+    
+    # Environment for backup service
+    environment:
+      - BACKUP_RETENTION_DAYS=7
+    
+    # Volume mounts
+    volumes:
+      - ozark_data:/data:ro
+      - ozark_backups:/backups
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+    
+    # Backup command (runs daily)
+    command: >
+      sh -c "
+      while true; do
+        sleep 86400;
+        timestamp=$$(date +%Y%m%d_%H%M%S);
+        cp -r /data/* /backups/backup_$$timestamp/ 2>/dev/null || true;
+        find /backups -type d -name 'backup_*' -mtime +$$BACKUP_RETENTION_DAYS -exec rm -rf {} + 2>/dev/null || true;
+        echo 'Backup completed at' $$(date);
+      done
+      "
+    
+    # Network
+    networks:
+      - ozark-network
+    
+    # Depends on main app
+    depends_on:
+      - ozark-finances
+
+# =============================================================================
+# VOLUMES - Persistent data storage
+# =============================================================================
+volumes:
+  ozark_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ozark-finances/data
+  
+  ozark_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ozark-finances/uploads
+  
+  ozark_generated:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ozark-finances/generated
+  
+  ozark_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ozark-finances/logs
+  
+  ozark_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ozark-finances/backups
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  ozark-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

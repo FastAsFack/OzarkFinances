@@ -1,0 +1,111 @@
+# Ozark Finances - Docker Ignore File
+# Files and directories to exclude from Docker build context
+# Created: August 15, 2025
+
+# =============================================================================
+# DATABASES - Never include in Docker image
+# =============================================================================
+*.db
+*.sqlite
+*.sqlite3
+audit_tracker.db*
+ozark_finances.db*
+*.db.backup*
+
+# Individual debt databases
+*Terug*.sqlite
+*Payments*.sqlite
+*Betaling*.sqlite
+
+# =============================================================================
+# DEVELOPMENT FILES
+# =============================================================================
+.git/
+.gitignore
+.github/
+README.md
+*.md
+docs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+.env
+.venv/
+venv/
+env/
+
+# =============================================================================
+# APPLICATION DATA
+# =============================================================================
+# User uploads and generated files
+uploads/
+generated/
+excelfiles/
+backups/
+backup_*/
+logs/
+*.log
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# =============================================================================
+# SYSTEM FILES
+# =============================================================================
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# =============================================================================
+# LARGE FILES
+# =============================================================================
+*.xlsx
+*.xls
+*.csv
+*.pdf
+*.zip
+*.tar.gz
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+*.pem
+*.key
+*.crt
+secrets/
+.env*

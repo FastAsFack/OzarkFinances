@@ -355,6 +355,43 @@ def create_excel_from_template(invoice_data, image_path=None):
         logger.error(f"Error creating Excel file: {e}")
         return None
 
+# =============================================================================
+# HEALTH CHECK ENDPOINT (for Docker and monitoring)
+# =============================================================================
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Docker containers and monitoring"""
+    try:
+        # Check database connectivity
+        test_query = "SELECT 1"
+        db_manager.execute_query(test_query)
+        
+        # Basic system checks
+        health_status = {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "version": "2.0.0",
+            "services": {
+                "database": "healthy",
+                "flask": "healthy"
+            },
+            "uptime": "running"
+        }
+        
+        return jsonify(health_status), 200
+        
+    except Exception as e:
+        error_status = {
+            "status": "unhealthy",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e),
+            "services": {
+                "database": "error",
+                "flask": "running"
+            }
+        }
+        return jsonify(error_status), 503
+
 @app.route('/')
 def index():
     """Main dashboard with comprehensive statistics"""
