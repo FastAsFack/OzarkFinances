@@ -1,0 +1,874 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Ozark Finances{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">
+                <i class="fas fa-chart-line me-2"></i>Financial Dashboard
+                <span class="info-btn" data-info="dashboard-overview" title="Click for more information">
+                    <i class="fas fa-info"></i>
+                </span>
+            </h1>
+            <div class="d-flex align-items-center">
+                <!-- Auto-refresh toggle -->
+                <div class="form-check form-switch me-3">
+                    <input class="form-check-input" type="checkbox" id="autoRefreshToggle" checked>
+                    <label class="form-check-label" for="autoRefreshToggle">
+                        <small>Auto-refresh</small>
+                    </label>
+                </div>
+                <!-- Manual refresh button -->
+                <button id="refreshBtn" class="btn btn-outline-primary btn-sm" title="Refresh Dashboard">
+                    <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                </button>
+                <!-- Last updated indicator -->
+                <small class="text-muted ms-3" id="lastUpdated">
+                    Loading...
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+</div>
+{% endif %}
+
+<!-- Key Metrics Cards -->
+<div class="row g-4 mb-4" id="dashboardCards">
+    <!-- Invoice Statistics -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-primary" id="invoiceCard">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Total Invoices</h6>
+                        <h3 class="text-primary mb-0" id="totalInvoices">
+                            {% if invoice_stats %}{{ invoice_stats.total_invoices }}{% else %}0{% endif %}
+                        </h3>
+                        <small class="text-muted" id="totalInvoiceAmount">
+                            {% if invoice_stats and invoice_stats.total_amount %}
+                                {{ format_euro(invoice_stats.total_amount) }} total
+                            {% endif %}
+                        </small>
+                    </div>
+                    <i class="fas fa-receipt fa-2x text-primary"></i>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('invoices') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i>View Invoices
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Statistics -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-success" id="withdrawCard">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Total Withdraws</h6>
+                        <h3 class="text-success mb-0" id="totalWithdraws">
+                            {% if withdraw_stats %}{{ withdraw_stats.total_withdraws }}{% else %}0{% endif %}
+                        </h3>
+                        <small class="text-muted" id="totalWithdrawAmount">
+                            {% if withdraw_stats and withdraw_stats.total_amount %}
+                                {{ format_euro(withdraw_stats.total_amount) }} total
+                            {% endif %}
+                        </small>
+                    </div>
+                    <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('withdraws') }}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i>View Withdraws
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debt Statistics -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-danger" id="debtCard">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Active Debts</h6>
+                        <h3 class="text-danger mb-0" id="totalDebts">
+                            {% if debt_stats %}{{ debt_stats.total_debts }}{% else %}0{% endif %}
+                        </h3>
+                        <small class="text-muted" id="totalDebtAmount">
+                            {% if debt_stats and debt_stats.total_debt_amount %}
+                                {{ format_euro(debt_stats.total_debt_amount) }} remaining
+                            {% endif %}
+                        </small>
+                    </div>
+                    <i class="fas fa-credit-card fa-2x text-danger"></i>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('debt') }}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i>View Debts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quarterly Info -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-warning" id="quarterlyCard">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Quarterly Records</h6>
+                        <h3 class="text-warning mb-0" id="totalQuarters">
+                            {% if quarterly_info %}{{ quarterly_info.total_quarters }}{% else %}0{% endif %}
+                        </h3>
+                        <small class="text-muted">Available quarters</small>
+                    </div>
+                    <i class="fas fa-exclamation-circle fa-2x text-warning"></i>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('important_info') }}" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i>View Info
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Financial Overview Cards -->
+<div class="row g-4 mb-4">
+    <!-- Quarterly Performance -->
+    <div class="col-md-6 col-lg-6">
+        <div class="card h-100 border-info" id="quarterlyPerformanceCard">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-info"></i>
+                        <span id="selectedQuarterTitle">{{ current_quarter }} {{ current_year }} Performance</span>
+                    </h5>
+                    <!-- Quarter selector dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" id="quarterSelector" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="selectedQuarterText">{{ current_quarter }}</span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="quarterSelector">
+                            {% for quarter in ['Q1', 'Q2', 'Q3', 'Q4'] %}
+                            <li>
+                                <a class="dropdown-item quarter-option {% if quarter == current_quarter %}active{% endif %}" 
+                                   href="#" data-quarter="{{ quarter }}">
+                                    {{ quarter }} {{ current_year }}
+                                    {% set quarter_data = quarterly_performance | selectattr('quarter', 'equalto', quarter) | first %}
+                                    {% if quarter_data %}
+                                        <small class="text-muted">({{ quarter_data.invoices_count }} invoices)</small>
+                                    {% else %}
+                                        <small class="text-muted">(0 invoices)</small>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Quarter Performance Display -->
+                <div id="quarterPerformanceContent">
+                    {% if current_quarter_data %}
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Invoices This Quarter</small>
+                            <h6 class="text-info" id="displayQuarterInvoices">{{ current_quarter_data.invoices_count }}</h6>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Revenue (Incl. VAT)</small>
+                            <h6 class="text-success" id="displayQuarterRevenue">{{ format_euro(current_quarter_data.total_incl) }}</h6>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <small class="text-muted">Excl. VAT</small>
+                            <p class="mb-0" id="displayQuarterExcl">{{ format_euro(current_quarter_data.total_excl) }}</p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">VAT Amount</small>
+                            <p class="mb-0" id="displayQuarterVAT">{{ format_euro(current_quarter_data.total_btw) }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted" id="noDataMessage">
+                        <i class="fas fa-info-circle mb-2"></i>
+                        <p>No invoices found for {{ current_quarter }} {{ current_year }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VAT Summary -->
+    <div class="col-md-6 col-lg-6">
+        <div class="card h-100 border-secondary" id="vatSummaryCard">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-percentage me-2 text-secondary"></i>VAT Summary {{ current_year }}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if vat_summary %}
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">Total VAT Collected</small>
+                        <h6 class="text-danger" id="totalVATCollected">{{ format_euro(vat_summary.total_vat_amount) }}</h6>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Avg VAT per Invoice</small>
+                        <h6 class="text-secondary" id="avgVATPerInvoice">{{ format_euro(vat_summary.avg_vat_per_invoice) }}</h6>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <small class="text-muted">Revenue Breakdown ({{ current_year }})</small>
+                        <div class="progress mt-1" style="height: 25px;">
+                            {% set excl_percentage = (vat_summary.total_excl_amount / vat_summary.total_incl_amount * 100) if vat_summary.total_incl_amount > 0 else 0 %}
+                            {% set vat_percentage = (vat_summary.total_vat_amount / vat_summary.total_incl_amount * 100) if vat_summary.total_incl_amount > 0 else 0 %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ excl_percentage }}%" 
+                                 title="Excl. VAT: {{ format_euro(vat_summary.total_excl_amount) }}">
+                                <small class="text-white">{{ "%.0f"|format(excl_percentage) }}%</small>
+                            </div>
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ vat_percentage }}%" 
+                                 title="VAT: {{ format_euro(vat_summary.total_vat_amount) }}">
+                                <small class="text-white">{{ "%.0f"|format(vat_percentage) }}%</small>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-success">Net: {{ format_euro(vat_summary.total_excl_amount) }}</small>
+                            <small class="text-danger">VAT: {{ format_euro(vat_summary.total_vat_amount) }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- VAT compliance indicator -->
+                <hr>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <small class="text-muted">21% VAT rate applied • {{ vat_summary.total_invoices }} invoices</small>
+                </div>
+                {% else %}
+                <div class="text-center text-muted">
+                    <i class="fas fa-info-circle mb-2"></i>
+                    <p>No VAT data available for {{ current_year }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Dashboard Layout - Invoice Overview & Current Debts -->
+<div class="row g-4 mb-4">
+    {% if invoice_stats %}
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100" id="invoiceSummaryCard">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Invoice Overview
+                </h5>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Average Amount</small>
+                            <h6 id="avgInvoiceAmount">{{ format_euro(invoice_stats.avg_amount) }}</h6>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Highest Invoice</small>
+                            <h6 id="maxInvoiceAmount">{{ format_euro(invoice_stats.max_amount) }}</h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Total Revenue</small>
+                            <h6 class="text-success">{{ format_euro(invoice_stats.total_amount) }}</h6>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Total Count</small>
+                            <h6 class="text-primary">{{ invoice_stats.total_invoices }}</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('invoices') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i>View All Invoices
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if all_debts %}
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100" id="currentDebtsCard">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-credit-card me-2"></i>Current Debts
+                    <span class="info-btn" data-info="current-debts" title="Click for more information">
+                        <i class="fas fa-info"></i>
+                    </span>
+                </h5>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-danger me-2">{{ all_debts|length }} Total</span>
+                    <a href="{{ url_for('debt') }}" class="btn btn-outline-danger btn-sm">Manage</a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Show first 3 debts -->
+                <div style="max-height: 200px; overflow-y: auto;">
+                    {% for debt in all_debts[:3] %}
+                    <div class="d-flex justify-content-between align-items-center p-3 {% if not loop.last %}border-bottom{% endif %}">
+                        <div>
+                            <strong>{{ debt.DebtName }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                Original: {{ format_euro(debt.OriginalDebt) }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-danger fs-6">{{ format_euro(debt.Amount) }}</span>
+                            {% if debt.OriginalDebt > 0 %}
+                            <br>
+                            <small class="text-success">
+                                {{ ((debt.OriginalDebt - debt.Amount) / debt.OriginalDebt * 100) | round(1) }}% paid
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Scrollable remaining debts -->
+                    {% if all_debts|length > 3 %}
+                        {% for debt in all_debts[3:] %}
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <div>
+                                <strong>{{ debt.DebtName }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    Original: {{ format_euro(debt.OriginalDebt) }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-danger fs-6">{{ format_euro(debt.Amount) }}</span>
+                                {% if debt.OriginalDebt > 0 %}
+                                <br>
+                                <small class="text-success">
+                                    {{ ((debt.OriginalDebt - debt.Amount) / debt.OriginalDebt * 100) | round(1) }}% paid
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Withdraws -->
+{% if recent_withdraws %}
+<div class="row g-4 mt-2">
+    <div class="col-md-6">
+        <div class="card border-success" id="recentWithdrawsCard">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Recent Withdraws
+                </h5>
+            </div>
+            <div class="card-body" id="recentWithdrawsList">
+                {% set max_amount = recent_withdraws | map(attribute='Amount') | max %}
+                {% for withdraw in recent_withdraws %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>{{ withdraw.Date }}</small>
+                        <small class="fw-bold">{{ format_euro(withdraw.Amount) }}</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ (withdraw.Amount / max_amount * 100) | round(0) }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('withdraws') }}" class="btn btn-success btn-sm">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Real-time dashboard functionality
+class DashboardManager {
+    constructor() {
+        this.autoRefreshEnabled = true;
+        this.refreshInterval = 30000; // 30 seconds
+        this.intervalId = null;
+        this.isRefreshing = false;
+        
+        this.init();
+    }
+    
+    init() {
+        // Set up event listeners
+        document.getElementById('refreshBtn').addEventListener('click', () => this.manualRefresh());
+        document.getElementById('autoRefreshToggle').addEventListener('change', (e) => this.toggleAutoRefresh(e.target.checked));
+        
+        // Start auto-refresh
+        this.startAutoRefresh();
+        
+        // Initial timestamp
+        this.updateLastUpdatedTime();
+    }
+    
+    toggleAutoRefresh(enabled) {
+        this.autoRefreshEnabled = enabled;
+        if (enabled) {
+            this.startAutoRefresh();
+        } else {
+            this.stopAutoRefresh();
+        }
+    }
+    
+    startAutoRefresh() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+        }
+        
+        if (this.autoRefreshEnabled) {
+            this.intervalId = setInterval(() => this.refreshData(), this.refreshInterval);
+        }
+    }
+    
+    stopAutoRefresh() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+    }
+    
+    manualRefresh() {
+        this.refreshData(true);
+    }
+    
+    async refreshData(isManual = false) {
+        if (this.isRefreshing) return;
+        
+        this.isRefreshing = true;
+        const refreshIcon = document.getElementById('refreshIcon');
+        
+        // Start loading animation
+        refreshIcon.classList.add('fa-spin');
+        
+        try {
+            const response = await fetch('/api/dashboard-data');
+            if (!response.ok) {
+                throw new Error('Failed to fetch dashboard data');
+            }
+            
+            const data = await response.json();
+            this.updateDashboard(data, isManual);
+            this.updateLastUpdatedTime(data.last_updated);
+            
+        } catch (error) {
+            console.error('Error refreshing dashboard:', error);
+            this.showRefreshError();
+        } finally {
+            // Stop loading animation
+            refreshIcon.classList.remove('fa-spin');
+            this.isRefreshing = false;
+        }
+    }
+    
+    updateDashboard(data, isManual = false) {
+        // Update main statistics cards with animation
+        this.animateUpdate('totalInvoices', data.invoice_stats.total_invoices);
+        this.animateUpdate('totalInvoiceAmount', this.formatEuro(data.invoice_stats.total_amount) + ' total');
+        
+        this.animateUpdate('totalWithdraws', data.withdraw_stats.total_withdraws);
+        this.animateUpdate('totalWithdrawAmount', this.formatEuro(data.withdraw_stats.total_amount) + ' total');
+        
+        this.animateUpdate('totalDebts', data.debt_stats.total_debts);
+        this.animateUpdate('totalDebtAmount', this.formatEuro(data.debt_stats.total_debt_amount) + ' remaining');
+        
+        this.animateUpdate('totalQuarters', data.quarterly_info.total_quarters);
+        
+        // Update quarterly performance data
+        if (data.current_quarter_data) {
+            this.animateUpdate('currentQuarterInvoices', data.current_quarter_data.invoices_count);
+            this.animateUpdate('currentQuarterRevenue', this.formatEuro(data.current_quarter_data.total_incl));
+            this.animateUpdate('currentQuarterExcl', this.formatEuro(data.current_quarter_data.total_excl));
+            this.animateUpdate('currentQuarterVAT', this.formatEuro(data.current_quarter_data.total_btw));
+        }
+        
+        // Update VAT summary data
+        if (data.vat_summary) {
+            this.animateUpdate('totalVATCollected', this.formatEuro(data.vat_summary.total_vat_amount));
+            this.animateUpdate('avgVATPerInvoice', this.formatEuro(data.vat_summary.avg_vat_per_invoice));
+            
+            // Update VAT progress bar
+            this.updateVATProgressBar(data.vat_summary);
+        }
+        
+        // Update invoice summary if exists
+        if (data.invoice_stats.avg_amount > 0) {
+            this.animateUpdate('avgInvoiceAmount', this.formatEuro(data.invoice_stats.avg_amount));
+            this.animateUpdate('maxInvoiceAmount', this.formatEuro(data.invoice_stats.max_amount));
+        }
+        
+        // Update recent invoices
+        this.updateRecentInvoices(data.recent_invoices);
+        
+        // Update current debts
+        this.updateCurrentDebts(data.all_debts);
+        
+        // Update recent withdraws
+        this.updateRecentWithdraws(data.recent_withdraws);
+        
+        // Refresh quarterly data if quarter manager exists
+        if (window.quarterManager) {
+            window.quarterManager.refreshData();
+        }
+        
+        // Show success feedback for manual refresh
+        if (isManual) {
+            this.showRefreshSuccess();
+        }
+    }
+    
+    animateUpdate(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const currentValue = element.textContent.trim();
+        const newValueStr = newValue.toString();
+        
+        if (currentValue !== newValueStr) {
+            // Add highlight animation
+            element.style.transition = 'background-color 0.3s ease';
+            element.style.backgroundColor = '#fff3cd';
+            element.textContent = newValueStr;
+            
+            // Remove highlight after animation
+            setTimeout(() => {
+                element.style.backgroundColor = '';
+            }, 500);
+        }
+    }
+    
+    updateRecentInvoices(invoices) {
+        const container = document.getElementById('recentInvoicesList');
+        const countBadge = document.getElementById('recentInvoicesCount');
+        
+        if (!container || !invoices.length) return;
+        
+        countBadge.textContent = invoices.length + ' Recent';
+        
+        container.innerHTML = invoices.map(invoice => `
+            <div class="col-12">
+                <div class="d-flex align-items-center p-2 border rounded">
+                    <i class="fas fa-check-circle text-success me-3"></i>
+                    <div class="flex-grow-1">
+                        <strong>${invoice.InvoiceID}</strong>
+                        <small class="text-muted d-block">Paid • ${invoice.InvoiceDate}</small>
+                    </div>
+                    <span class="fw-bold text-success">${this.formatEuro(invoice.Incl)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    updateCurrentDebts(debts) {
+        const container = document.getElementById('currentDebtsList');
+        if (!container || !debts.length) return;
+        
+        container.innerHTML = debts.map((debt, index) => `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <strong>${debt.DebtName}</strong>
+                    <br>
+                    <small class="text-muted">
+                        Original: ${this.formatEuro(debt.OriginalDebt)}
+                    </small>
+                </div>
+                <span class="badge bg-danger">${this.formatEuro(debt.Amount)}</span>
+            </div>
+            ${index < debts.length - 1 ? '<hr class="my-2">' : ''}
+        `).join('');
+    }
+    
+    updateRecentWithdraws(withdraws) {
+        const container = document.getElementById('recentWithdrawsList');
+        if (!container || !withdraws.length) return;
+        
+        const maxAmount = Math.max(...withdraws.map(w => w.Amount));
+        
+        container.innerHTML = withdraws.map(withdraw => `
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <small>${withdraw.Date}</small>
+                    <small class="fw-bold">${this.formatEuro(withdraw.Amount)}</small>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-success" style="width: ${Math.round((withdraw.Amount / maxAmount) * 100)}%"></div>
+                </div>
+            </div>
+        `).join('') + `
+            <div class="text-center mt-3">
+                <a href="/withdraws" class="btn btn-success btn-sm">View All</a>
+            </div>
+        `;
+    }
+    
+    updateVATProgressBar(vatSummary) {
+        if (vatSummary.total_incl_amount <= 0) return;
+        
+        const exclPercentage = (vatSummary.total_excl_amount / vatSummary.total_incl_amount * 100);
+        const vatPercentage = (vatSummary.total_vat_amount / vatSummary.total_incl_amount * 100);
+        
+        // Update progress bars
+        const exclBar = document.querySelector('.progress-bar.bg-success');
+        const vatBar = document.querySelector('.progress-bar.bg-danger');
+        
+        if (exclBar) {
+            exclBar.style.width = exclPercentage + '%';
+            exclBar.innerHTML = `<small class="text-white">${Math.round(exclPercentage)}%</small>`;
+            exclBar.title = `Excl. VAT: ${this.formatEuro(vatSummary.total_excl_amount)}`;
+        }
+        
+        if (vatBar) {
+            vatBar.style.width = vatPercentage + '%';
+            vatBar.innerHTML = `<small class="text-white">${Math.round(vatPercentage)}%</small>`;
+            vatBar.title = `VAT: ${this.formatEuro(vatSummary.total_vat_amount)}`;
+        }
+        
+        // Update breakdown labels
+        const netLabel = document.querySelector('.text-success');
+        const vatLabel = document.querySelector('.text-danger');
+        
+        if (netLabel && netLabel.textContent.includes('Net:')) {
+            netLabel.textContent = `Net: ${this.formatEuro(vatSummary.total_excl_amount)}`;
+        }
+        
+        if (vatLabel && vatLabel.textContent.includes('VAT:')) {
+            vatLabel.textContent = `VAT: ${this.formatEuro(vatSummary.total_vat_amount)}`;
+        }
+    }
+    
+    formatEuro(amount) {
+        return new Intl.NumberFormat('nl-NL', {
+            style: 'currency',
+            currency: 'EUR'
+        }).format(amount);
+    }
+    
+    updateLastUpdatedTime(timestamp = null) {
+        const element = document.getElementById('lastUpdated');
+        if (element) {
+            const time = timestamp ? new Date(timestamp) : new Date();
+            element.textContent = 'Updated: ' + time.toLocaleTimeString();
+        }
+    }
+    
+    showRefreshSuccess() {
+        const refreshBtn = document.getElementById('refreshBtn');
+        const originalClass = refreshBtn.className;
+        
+        refreshBtn.className = refreshBtn.className.replace('btn-outline-primary', 'btn-success');
+        setTimeout(() => {
+            refreshBtn.className = originalClass;
+        }, 1000);
+    }
+    
+    showRefreshError() {
+        const refreshBtn = document.getElementById('refreshBtn');
+        const originalClass = refreshBtn.className;
+        
+        refreshBtn.className = refreshBtn.className.replace('btn-outline-primary', 'btn-danger');
+        setTimeout(() => {
+            refreshBtn.className = originalClass;
+        }, 2000);
+    }
+}
+
+// Initialize dashboard manager when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.dashboardManager = new DashboardManager();
+    window.quarterManager = new QuarterManager();
+});
+
+// Quarter Manager Class for handling quarter navigation
+class QuarterManager {
+    constructor() {
+        this.quarterlyData = {};
+        this.currentYear = new Date().getFullYear();
+        this.selectedQuarter = this.getCurrentQuarter();
+        this.initializeQuarterNavigation();
+        this.loadQuarterlyData();
+    }
+    
+    getCurrentQuarter() {
+        const month = new Date().getMonth() + 1;
+        return `Q${Math.ceil(month / 3)}`;
+    }
+    
+    initializeQuarterNavigation() {
+        // Handle dropdown quarter selection
+        document.querySelectorAll('.quarter-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                const quarter = e.target.getAttribute('data-quarter');
+                this.switchToQuarter(quarter);
+            });
+        });
+    }
+    
+    async loadQuarterlyData() {
+        try {
+            const response = await fetch('/api/dashboard-data');
+            if (!response.ok) throw new Error('Failed to fetch data');
+            
+            const data = await response.json();
+            
+            // Store quarterly data
+            this.quarterlyData = {};
+            if (data.quarterly_performance) {
+                data.quarterly_performance.forEach(quarter => {
+                    this.quarterlyData[quarter.quarter] = quarter;
+                });
+            }
+            
+            // Initialize with current quarter
+            this.updateQuarterDisplay(this.selectedQuarter);
+            
+        } catch (error) {
+            console.error('Error loading quarterly data:', error);
+        }
+    }
+    
+    switchToQuarter(quarter) {
+        this.selectedQuarter = quarter;
+        this.updateQuarterDisplay(quarter);
+        this.updateNavigationState(quarter);
+    }
+    
+    updateQuarterDisplay(quarter) {
+        const quarterData = this.quarterlyData[quarter];
+        
+        // Update title
+        document.getElementById('selectedQuarterTitle').textContent = `${quarter} ${this.currentYear} Performance`;
+        document.getElementById('selectedQuarterText').textContent = quarter;
+        
+        if (quarterData && quarterData.invoices_count > 0) {
+            // Show data
+            document.getElementById('quarterPerformanceContent').innerHTML = `
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">Invoices This Quarter</small>
+                        <h6 class="text-info" id="displayQuarterInvoices">${quarterData.invoices_count}</h6>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Revenue (Incl. VAT)</small>
+                        <h6 class="text-success" id="displayQuarterRevenue">${this.formatEuro(quarterData.total_incl)}</h6>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-6">
+                        <small class="text-muted">Excl. VAT</small>
+                        <p class="mb-0" id="displayQuarterExcl">${this.formatEuro(quarterData.total_excl)}</p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">VAT Amount</small>
+                        <p class="mb-0" id="displayQuarterVAT">${this.formatEuro(quarterData.total_btw)}</p>
+                    </div>
+                </div>
+                
+                <!-- Performance indicators -->
+                <div class="mt-3 p-2 border rounded">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <small class="text-muted d-block">Avg per Invoice</small>
+                            <small class="fw-bold">${this.formatEuro(quarterData.total_incl / quarterData.invoices_count)}</small>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">VAT Rate</small>
+                            <small class="fw-bold text-danger">${((quarterData.total_btw / quarterData.total_excl) * 100).toFixed(1)}%</small>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Net Margin</small>
+                            <small class="fw-bold text-success">${((quarterData.total_excl / quarterData.total_incl) * 100).toFixed(1)}%</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Show no data message
+            document.getElementById('quarterPerformanceContent').innerHTML = `
+                <div class="text-center text-muted" id="noDataMessage">
+                    <i class="fas fa-info-circle mb-2"></i>
+                    <p>No invoices found for ${quarter} ${this.currentYear}</p>
+                    <small>This quarter has no recorded business activity.</small>
+                </div>
+            `;
+        }
+    }
+    
+    updateNavigationState(selectedQuarter) {
+        // Update dropdown active state
+        document.querySelectorAll('.quarter-option').forEach(option => {
+            const quarter = option.getAttribute('data-quarter');
+            if (quarter === selectedQuarter) {
+                option.classList.add('active');
+            } else {
+                option.classList.remove('active');
+            }
+        });
+    }
+    
+    formatEuro(amount) {
+        return new Intl.NumberFormat('nl-NL', {
+            style: 'currency',
+            currency: 'EUR'
+        }).format(amount || 0);
+    }
+    
+    // Method to refresh data (called by main dashboard manager)
+    async refreshData() {
+        await this.loadQuarterlyData();
+    }
+}
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+    if (window.dashboardManager) {
+        window.dashboardManager.stopAutoRefresh();
+    }
+    if (window.quarterManager) {
+        // Clean up any quarter manager resources if needed
+        window.quarterManager = null;
+    }
+});
+</script>
+{% endblock %}

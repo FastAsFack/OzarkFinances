@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Midnight Azure */
+
+:root {
+    /* Dark Theme Base Colors - Midnight Azure */
+    --bg-dark: #0a0e1a;
+    --control-dark: #1a1e2e;
+    --text-light: #e3f2fd;
+    --text-muted: #90caf9;
+    --border-color: #263238;
+    --hover-color: #2c3e50;
+    
+    /* Accent Colors - Azure Focused */
+    --primary-color: #03a9f4;
+    --primary-hover: #0288d1;
+    --success-color: #4caf50;
+    --success-light: #81c784;
+    --danger-color: #f44336;
+    --danger-light: #ef5350;
+    --warning-color: #ff9800;
+    --info-color: #00bcd4;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(3, 169, 244, 0.04);
+    --bg-medium-overlay: rgba(3, 169, 244, 0.08);
+    --bg-strong-overlay: rgba(3, 169, 244, 0.15);
+    
+    /* Border Variants */
+    --border-light: #37474f;
+    --border-medium: #455a64;
+    --border-strong: #546e7a;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Neon Cyber */
+
+:root {
+    /* Dark Theme Base Colors - Neon Cyber */
+    --bg-dark: #0d0208;
+    --control-dark: #1a0f1a;
+    --text-light: #00ff41;
+    --text-muted: #39ff14;
+    --border-color: #003b00;
+    --hover-color: #001100;
+    
+    /* Accent Colors - Cyber Focused */
+    --primary-color: #00ff41;
+    --primary-hover: #00cc33;
+    --success-color: #39ff14;
+    --success-light: #7fff00;
+    --danger-color: #ff073a;
+    --danger-light: #ff1744;
+    --warning-color: #ffff00;
+    --info-color: #00ffff;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(0, 255, 65, 0.04);
+    --bg-medium-overlay: rgba(0, 255, 65, 0.08);
+    --bg-strong-overlay: rgba(0, 255, 65, 0.15);
+    
+    /* Border Variants */
+    --border-light: #004d00;
+    --border-medium: #006600;
+    --border-strong: #008000;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

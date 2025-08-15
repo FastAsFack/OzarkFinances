@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice Bin - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Note:</strong> The bin is now integrated into the main <a href="{{ url_for('invoices') }}" class="alert-link">Invoices page</a> 
+            as a card in the right sidebar. This standalone page is kept for legacy access and detailed bin management.
+        </div>
+        
+        <h1 class="mb-4">
+            <i class="fas fa-trash-alt me-2"></i>Invoice Bin (Legacy View)
+            <small class="text-muted fs-6">({{ pagination.total }} binned invoices)</small>
+        </h1>
+        
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <a href="{{ url_for('invoices') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Invoices (Integrated View)
+            </a>
+            <form method="POST" action="{{ url_for('auto_cleanup_bin') }}" style="display: inline;">
+                <button type="submit" class="btn btn-outline-warning" 
+                        onclick="return confirm('This will permanently delete all invoices that have been in the bin for more than 30 days. Continue?')">
+                    <i class="fas fa-broom me-1"></i>Auto-Cleanup (30+ days)
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if invoices %}
+<!-- Bulk Actions -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form id="bulkDeleteForm" method="POST" action="{{ url_for('bulk_delete_invoices') }}">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAll">
+                            <label class="form-check-label" for="selectAll">
+                                Select All
+                            </label>
+                        </div>
+                        <span id="selectedCount" class="text-muted">0 selected</span>
+                        <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn" disabled 
+                                onclick="confirmBulkDelete()">
+                            <i class="fas fa-trash me-1"></i>Permanently Delete Selected
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoices Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Binned Invoices
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 50px;">
+                                    <input type="checkbox" id="headerSelectAll" class="form-check-input">
+                                </th>
+                                <th>Invoice ID</th>
+                                <th>Invoice Date</th>
+                                <th>Amount (Excl)</th>
+                                <th>BTW</th>
+                                <th>Amount (Incl)</th>
+                                <th>Deleted At</th>
+                                <th style="width: 120px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in invoices %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="invoice_ids" value="{{ invoice.InvoiceID }}" 
+                                           class="form-check-input invoice-checkbox">
+                                </td>
+                                <td>
+                                    <strong>{{ invoice.InvoiceID }}</strong>
+                                </td>
+                                <td>{{ invoice.InvoiceDate }}</td>
+                                <td>{{ format_euro(invoice.Excl) }}</td>
+                                <td>{{ format_euro(invoice.BTW) }}</td>
+                                <td>
+                                    <strong>{{ format_euro(invoice.Incl) }}</strong>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {% if invoice.deleted_at %}
+                                            {{ invoice.deleted_at }}<br>
+                                            {% set deleted_date = invoice.deleted_at | strptime('%Y-%m-%d %H:%M:%S') %}
+                                            {% set days_since = (now() - deleted_date).days %}
+                                            {% set days_remaining = 30 - days_since %}
+                                            {% if days_remaining > 0 %}
+                                                <span class="badge bg-info">{{ days_remaining }} days remaining</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Ready for auto-cleanup</span>
+                                            {% endif %}
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <!-- Restore button -->
+                                        <form method="POST" action="{{ url_for('restore_invoice_from_bin', invoice_id=invoice.InvoiceID) }}" 
+                                              style="display: inline;">
+                                            <button type="submit" class="btn btn-success btn-sm" 
+                                                    title="Restore invoice">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </form>
+                                        
+                                        <!-- Permanent delete button -->
+                                        <button type="button" class="btn btn-danger btn-sm" 
+                                                title="Permanently delete"
+                                                onclick="confirmPermanentDelete('{{ invoice.InvoiceID }}')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.total_pages > 1 %}
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Invoice bin pagination">
+            <ul class="pagination justify-content-center">
+                {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('invoices_bin', page=pagination.prev_num) }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in range(1, pagination.total_pages + 1) %}
+                    {% if page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 2 and page_num <= pagination.page + 2) %}
+                        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('invoices_bin', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% elif page_num == 4 or page_num == pagination.total_pages - 3 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('invoices_bin', page=pagination.next_num) }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-trash-alt fa-3x text-muted mb-3"></i>
+                <h3 class="text-muted">No invoices in bin</h3>
+                <p class="text-muted">When you move invoices to the bin, they will appear here.</p>
+                <a href="{{ url_for('invoices') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Invoices
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllMain = document.getElementById('selectAll');
+    const selectAllHeader = document.getElementById('headerSelectAll');
+    const invoiceCheckboxes = document.querySelectorAll('.invoice-checkbox');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+    
+    // Sync both select all checkboxes
+    function syncSelectAll() {
+        const checkedCount = document.querySelectorAll('.invoice-checkbox:checked').length;
+        const totalCount = invoiceCheckboxes.length;
+        
+        selectAllMain.checked = checkedCount === totalCount && totalCount > 0;
+        selectAllHeader.checked = checkedCount === totalCount && totalCount > 0;
+        selectAllMain.indeterminate = checkedCount > 0 && checkedCount < totalCount;
+        selectAllHeader.indeterminate = checkedCount > 0 && checkedCount < totalCount;
+        
+        selectedCountSpan.textContent = `${checkedCount} selected`;
+        bulkDeleteBtn.disabled = checkedCount === 0;
+    }
+    
+    // Handle select all checkboxes
+    [selectAllMain, selectAllHeader].forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            invoiceCheckboxes.forEach(cb => cb.checked = this.checked);
+            syncSelectAll();
+        });
+    });
+    
+    // Handle individual checkboxes
+    invoiceCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', syncSelectAll);
+    });
+    
+    // Initialize
+    syncSelectAll();
+});
+
+function showBulkDeleteModal() {
+    // This function is no longer used - replaced with confirmBulkDelete
+}
+
+function confirmBulkDelete() {
+    const checkedBoxes = document.querySelectorAll('.invoice-checkbox:checked');
+    const count = checkedBoxes.length;
+    
+    if (count === 0) {
+        showToast('Please select at least one invoice to delete', 'warning');
+        return;
+    }
+    
+    showPrompt(
+        'Confirm Permanent Deletion',
+        `You are about to PERMANENTLY delete ${count} invoice(s). This action cannot be undone. Type "DELETE" to confirm:`,
+        '',
+        function(value) {
+            if (value === 'DELETE') {
+                // Create form and submit
+                const form = document.getElementById('bulkDeleteForm');
+                
+                // Add confirmation to form
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'confirmation';
+                hiddenInput.value = 'delete';
+                form.appendChild(hiddenInput);
+                
+                // Add selected invoice IDs to form
+                checkedBoxes.forEach(checkbox => {
+                    const hiddenCheckbox = document.createElement('input');
+                    hiddenCheckbox.type = 'hidden';
+                    hiddenCheckbox.name = 'invoice_ids';
+                    hiddenCheckbox.value = checkbox.value;
+                    form.appendChild(hiddenCheckbox);
+                });
+                
+                form.submit();
+            } else {
+                showToast('Deletion cancelled - incorrect confirmation text', 'warning');
+            }
+        }
+    );
+}
+
+// Function for permanent delete confirmation
+function confirmPermanentDelete(invoiceId) {
+    if (confirm(`⚠️ PERMANENT DELETE\n\nThis will permanently delete invoice ${invoiceId} from the database. This action cannot be undone.\n\nAre you sure you want to proceed?`)) {
+        // Create and submit form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/invoices/permanent-delete/${invoiceId}`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+
+{% endblock %}

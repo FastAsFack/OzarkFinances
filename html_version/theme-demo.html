@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Switcher Demo - Ozark Finances</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/base-components.css" rel="stylesheet">
+    <link href="css/theme-switcher.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a class="navbar-brand" href="index.html">
+                    <i class="fas fa-chart-line me-2"></i>Ozark Finances
+                </a>
+                <ul class="navbar-nav">
+                    <li><a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+                    <li><a class="nav-link" href="invoices.html"><i class="fas fa-receipt me-1"></i>Invoices</a></li>
+                    <li><a class="nav-link" href="withdraws.html"><i class="fas fa-money-bill-wave me-1"></i>Withdraws</a></li>
+                    <li><a class="nav-link" href="important_info.html"><i class="fas fa-exclamation-circle me-1"></i>Important Info</a></li>
+                    <li><a class="nav-link" href="debt.html"><i class="fas fa-credit-card me-1"></i>Debt</a></li>
+                    <li><a class="nav-link active" href="theme-demo.html"><i class="fas fa-palette me-1"></i>Theme Demo</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">
+                    <i class="fas fa-palette me-2"></i>Interactive Theme Switcher Demo
+                </h1>
+                <p class="text-muted mb-4">
+                    Click the palette icon <i class="fas fa-palette text-primary"></i> in the top-right corner to switch between different dark mode themes.
+                    Your choice will be saved and applied across all pages.
+                </p>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>How to use:</strong>
+                    <ol class="mb-0 mt-2">
+                        <li>Click the <i class="fas fa-palette"></i> button in the top-right corner</li>
+                        <li>Choose from 6 different dark mode themes</li>
+                        <li>Your selection is automatically saved to localStorage</li>
+                        <li>Navigate to other pages to see the theme persists</li>
+                        <li>Click the palette button again to collapse/expand the switcher</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme Descriptions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-swatchbook me-2"></i>Available Themes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 30px; height: 30px; background: #2b2b2b; border: 2px solid var(--border-color); border-radius: 50%; margin-right: 1rem;"></div>
+                                    <div>
+                                        <h6 class="mb-0 text-primary">Original Dark</h6>
+                                        <small class="text-muted">Classic professional theme with neutral grays</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 30px; height: 30px; background: #0f1419; border: 2px solid var(--border-color); border-radius: 50%; margin-right: 1rem;"></div>
+                                    <div>
+                                        <h6 class="mb-0 text-primary">Deep Blue</h6>
+                                        <small class="text-muted">Ocean-inspired calming theme with blue tones</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 30px; height: 30px; background: #1a0d26; border: 2px solid var(--border-color); border-radius: 50%; margin-right: 1rem;"></div>
+                                    <div>
+                                        <h6 class="mb-0 text-primary">Purple Night</h6>
+                                        <small class="text-muted">Rich and sophisticated with purple accents</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 30px; height: 30px; background: #0d1f0d; border: 2px solid var(--border-color); border-radius: 50%; margin-right: 1rem;"></div>
+                                    <div>
+                                        <h6 class="mb-0 text-primary">Forest Green</h6>
+                                        <small class="text-muted">Nature-inspired relaxing green theme</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 30px; height: 30px; background: #1f1611; border: 2px solid var(--border-color); border-radius: 50%; margin-right: 1rem;"></div>
+                                    <div>
+                                        <h6 class="mb-0 text-primary">Warm Amber</h6>
+                                        <small class="text-muted">Cozy and inviting with warm earth tones</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 30px; height: 30px; background: #0f172a; border: 2px solid var(--border-color); border-radius: 50%; margin-right: 1rem;"></div>
+                                    <div>
+                                        <h6 class="mb-0 text-primary">Slate Gray</h6>
+                                        <small class="text-muted">Modern and minimalist gray theme</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample Components to Test Themes -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Sample Card
+                        </h5>
+                        <button class="btn btn-outline-primary btn-sm">Action</button>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">This card shows how the theme affects different components.</p>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Value</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Revenue</td>
+                                        <td class="text-success">€5,250</td>
+                                        <td><span class="badge badge-success">Good</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Expenses</td>
+                                        <td class="text-danger">€1,200</td>
+                                        <td><span class="badge badge-danger">High</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Profit</td>
+                                        <td class="text-primary">€4,050</td>
+                                        <td><span class="badge badge-primary">Target</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>Sample Form
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" placeholder="Enter your name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select class="form-select">
+                                    <option>Choose option...</option>
+                                    <option>Option 1</option>
+                                    <option>Option 2</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-control" placeholder="0.00">
+                            </div>
+                            <div class="d-flex" style="gap: 0.5rem;">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                                <button type="button" class="btn btn-custom">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Sample -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Success!</strong> This is how success messages look in the current theme.
+                </div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Error!</strong> This is how error messages appear in the current theme.
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Info!</strong> This is how informational messages are displayed.
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress and Statistics -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Progress</h6>
+                        <h3 class="text-primary">75%</h3>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Success Rate</h6>
+                        <h3 class="text-success">92%</h3>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: 92%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Risk Level</h6>
+                        <h3 class="text-danger">23%</h3>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: 23%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Efficiency</h6>
+                        <h3 class="text-primary">89%</h3>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: 89%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/theme-switcher.js"></script>
+</body>
+</html>

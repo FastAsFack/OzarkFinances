@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraws - Ozark Finances</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a class="navbar-brand" href="index.html">
+                    <i class="fas fa-chart-line me-2"></i>Ozark Finances
+                </a>
+                <ul class="navbar-nav">
+                    <li><a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+                    <li><a class="nav-link" href="invoices.html"><i class="fas fa-receipt me-1"></i>Invoices</a></li>
+                    <li><a class="nav-link active" href="withdraws.html"><i class="fas fa-money-bill-wave me-1"></i>Withdraws</a></li>
+                    <li><a class="nav-link" href="important_info.html"><i class="fas fa-exclamation-circle me-1"></i>Important Info</a></li>
+                    <li><a class="nav-link" href="debt.html"><i class="fas fa-credit-card me-1"></i>Debt</a></li>
+                    <li><a class="nav-link" href="card_variations.html"><i class="fas fa-palette me-1"></i>Card Designs</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">
+                    <i class="fas fa-money-bill-wave me-2"></i>Withdraw Management
+                </h1>
+            </div>
+        </div>
+
+        <!-- Add New Withdraw -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-plus me-2"></i>Add New Withdraw
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Date</label>
+                                        <input type="date" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Amount (€)</label>
+                                        <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i>Add Withdraw
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Total Withdraws</h6>
+                        <h3 class="text-primary">8</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Total Amount</h6>
+                        <h3 class="text-danger">€3,200.00</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Average Withdraw</h6>
+                        <h3 class="text-primary">€400.00</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdraw History -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>Withdraw History
+                        </h5>
+                        <span class="text-muted">8 withdraws found</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>24-12-2024</td>
+                                        <td>
+                                            <span class="badge badge-danger">€500.00</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>20-12-2024</td>
+                                        <td>
+                                            <span class="badge badge-danger">€750.00</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>18-12-2024</td>
+                                        <td>
+                                            <span class="badge badge-danger">€300.00</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>15-12-2024</td>
+                                        <td>
+                                            <span class="badge badge-danger">€400.00</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>12-12-2024</td>
+                                        <td>
+                                            <span class="badge badge-danger">€250.00</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>10-12-2024</td>
+                                        <td>
+                                            <span class="badge badge-danger">€350.00</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>08-12-2024</td>
+                                        <td>
+                                            <span class="badge badge-danger">€450.00</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>05-12-2024</td>
+                                        <td>
+                                            <span class="badge badge-danger">€200.00</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Summary -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Monthly Withdraw Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <h6 class="text-muted">December 2024</h6>
+                                <h4 class="text-danger">€3,200.00</h4>
+                                <small class="text-muted">8 withdraws</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">November 2024</h6>
+                                <h4 class="text-danger">€2,850.00</h4>
+                                <small class="text-muted">6 withdraws</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">October 2024</h6>
+                                <h4 class="text-danger">€1,950.00</h4>
+                                <small class="text-muted">4 withdraws</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Quarter Total</h6>
+                                <h4 class="text-primary">€8,000.00</h4>
+                                <small class="text-muted">18 withdraws</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

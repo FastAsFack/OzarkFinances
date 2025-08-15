@@ -1,0 +1,38 @@
+/* Ozark Finances - Dark Mode Variation 3: Forest Green */
+
+/* CSS Variables for Forest Green Dark Theme */
+:root {
+    /* Dark Theme Base Colors - Forest Green */
+    --bg-dark: #0d1f0d;
+    --control-dark: #1a2e1a;
+    --text-light: #e8f5e8;
+    --text-muted: #a8d8a8;
+    --border-color: #2d4a2d;
+    --hover-color: #234023;
+    
+    /* Accent Colors - Green Focused */
+    --primary-color: #22c55e;
+    --primary-hover: #16a34a;
+    --success-color: #15803d;
+    --success-light: #4ade80;
+    --danger-color: #dc2626;
+    --danger-light: #ef4444;
+    --warning-color: #d97706;
+    --info-color: #0891b2;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(168, 216, 168, 0.03);
+    --bg-medium-overlay: rgba(168, 216, 168, 0.06);
+    --bg-strong-overlay: rgba(168, 216, 168, 0.12);
+    
+    /* Border Variants */
+    --border-light: #4d6a4d;
+    --border-medium: #5d7a5d;
+    --border-strong: #6d8a6d;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}
+
+/* All other styles remain the same - just import or copy from the main style.css */

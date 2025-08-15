@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Test Dialogs - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Dialog Testing Page</h1>
+    <p>This page is for testing the custom confirmation dialogs.</p>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Dialog Tests</h5>
+                </div>
+                <div class="card-body">
+                    <button type="button" class="btn btn-primary me-2" onclick="testBasicConfirm()">
+                        Test Basic Confirm Dialog
+                    </button>
+                    
+                    <button type="button" class="btn btn-success me-2" onclick="testToast()">
+                        Test Toast Notification
+                    </button>
+                    
+                    <button type="button" class="btn btn-warning me-2" onclick="testPrompt()">
+                        Test Prompt Dialog
+                    </button>
+                    
+                    <button type="button" class="btn btn-info me-2" onclick="testModal()">
+                        Test Custom Modal
+                    </button>
+                    
+                    <hr>
+                    
+                    <h6>BTW Payment Mock Tests</h6>
+                    <button type="button" class="btn btn-outline-success me-2" onclick="mockConfirmMarkPaid(1)">
+                        Mock Mark Paid
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-danger me-2" onclick="mockConfirmReverse(1)">
+                        Mock Reverse Payment
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-warning me-2" onclick="mockConfirmAutoCalc(1)">
+                        Mock Auto Calculate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Console Output</h5>
+                </div>
+                <div class="card-body">
+                    <p>Check the browser console (F12) for debug information.</p>
+                    <pre id="logOutput" style="background: #1e1e1e; color: #d4d4d4; padding: 10px; max-height: 300px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Capture console logs for display
+const originalLog = console.log;
+const originalError = console.error;
+const logOutput = document.getElementById('logOutput');
+
+function appendToLog(message, type = 'log') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logElement = document.getElementById('logOutput');
+    if (logElement) {
+        const color = type === 'error' ? '#ff6b6b' : '#4ecdc4';
+        logElement.innerHTML += `<span style="color: ${color};">[${timestamp}] ${message}</span>\n`;
+        logElement.scrollTop = logElement.scrollHeight;
+    }
+}
+
+console.log = function(...args) {
+    originalLog.apply(console, args);
+    appendToLog(args.join(' '), 'log');
+};
+
+console.error = function(...args) {
+    originalError.apply(console, args);
+    appendToLog(args.join(' '), 'error');
+};
+
+// Test functions
+function testBasicConfirm() {
+    console.log('Testing basic confirmation dialog...');
+    
+    // Try MessageBox directly first
+    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
+        console.log('Using MessageBox.showConfirmation directly');
+        MessageBox.showConfirmation(
+            'Test Confirmation',
+            'This is a test confirmation dialog. Do you want to proceed?',
+            function() {
+                console.log('User clicked OK');
+                if (typeof MessageBox.showToast === 'function') {
+                    MessageBox.showToast('Confirmation dialog works!', 'success');
+                } else {
+                    alert('Confirmation dialog works!');
+                }
+            },
+            function() {
+                console.log('User clicked Cancel');
+                if (typeof MessageBox.showToast === 'function') {
+                    MessageBox.showToast('User cancelled', 'info');
+                } else {
+                    alert('User cancelled');
+                }
+            }
+        );
+    } else if (typeof showConfirmation === 'function') {
+        console.log('Using global showConfirmation function');
+        showConfirmation(
+            'Test Confirmation',
+            'This is a test confirmation dialog. Do you want to proceed?',
+            function() {
+                console.log('User clicked OK');
+                if (typeof showToast === 'function') {
+                    showToast('Confirmation dialog works!', 'success');
+                } else {
+                    alert('Confirmation dialog works!');
+                }
+            },
+            function() {
+                console.log('User clicked Cancel');
+                if (typeof showToast === 'function') {
+                    showToast('User cancelled', 'info');
+                } else {
+                    alert('User cancelled');
+                }
+            }
+        );
+    } else {
+        console.error('No confirmation function found!');
+        alert('No confirmation function found! Check console for details.');
+    }
+}
+
+function testToast() {
+    console.log('Testing toast notification...');
+    
+    if (typeof showToast === 'function') {
+        showToast('This is a test toast notification!', 'info', 3000);
+    } else {
+        console.error('showToast function not found!');
+    }
+}
+
+function testPrompt() {
+    console.log('Testing prompt dialog...');
+    
+    if (typeof showPrompt === 'function') {
+        showPrompt(
+            'Test Prompt',
+            'Please enter a value:',
+            'default value',
+            function(value) {
+                console.log('User entered:', value);
+                showToast(`You entered: ${value}`, 'success');
+            }
+        );
+    } else {
+        console.error('showPrompt function not found!');
+    }
+}
+
+function testModal() {
+    console.log('Testing custom modal...');
+    
+    if (typeof showModal === 'function') {
+        showModal(
+            'Test Modal',
+            'This is a test custom modal with custom content.',
+            'info',
+            '<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>'
+        );
+    } else {
+        console.error('showModal function not found!');
+    }
+}
+
+// Mock BTW payment functions (without actual form submission)
+function mockConfirmMarkPaid(paymentId) {
+    console.log('Mock confirmMarkPaid called for payment:', paymentId);
+    
+    if (typeof showConfirmation === 'function') {
+        showConfirmation(
+            'Mark Payment as Paid',
+            'Mark this BTW payment as paid today? This will record the current date as the payment date.',
+            function() {
+                console.log('Mock: Would submit mark paid form for payment:', paymentId);
+                showToast('Mock: Payment would be marked as paid', 'success');
+            }
+        );
+    } else {
+        console.error('showConfirmation function not found!');
+    }
+}
+
+function mockConfirmReverse(paymentId) {
+    console.log('Mock confirmReverseBtwPayment called for payment:', paymentId);
+    
+    if (typeof showConfirmation === 'function') {
+        showConfirmation(
+            'Reverse BTW Payment',
+            'Reverse this payment and mark as unpaid? This will clear the payment date and change status back to pending.',
+            function() {
+                console.log('Mock: Would submit reverse payment form for payment:', paymentId);
+                showToast('Mock: Payment would be reversed', 'warning');
+            }
+        );
+    } else {
+        console.error('showConfirmation function not found!');
+    }
+}
+
+function mockConfirmAutoCalc(paymentId) {
+    console.log('Mock confirmAutoCalculate called for payment:', paymentId);
+    
+    if (typeof showConfirmation === 'function') {
+        showConfirmation(
+            'Auto-Calculate BTW Amount',
+            'Calculate the BTW amount automatically from your invoice data for this quarter? This will overwrite any manually entered amount.',
+            function() {
+                console.log('Mock: Would submit auto calculate form for payment:', paymentId);
+                showToast('Mock: BTW would be auto-calculated', 'info');
+            }
+        );
+    } else {
+        console.error('showConfirmation function not found!');
+    }
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Test dialogs page loaded');
+    
+    // Check MessageBox class
+    if (typeof MessageBox !== 'undefined') {
+        console.log('✓ MessageBox class is available');
+        console.log('  - Type:', typeof MessageBox);
+        console.log('  - showConfirmation:', typeof MessageBox.showConfirmation);
+        console.log('  - showModal:', typeof MessageBox.showModal);
+        console.log('  - showToast:', typeof MessageBox.showToast);
+    } else {
+        console.error('✗ MessageBox class is NOT available');
+    }
+    
+    // Check available functions
+    const functions = ['showConfirmation', 'showToast', 'showModal', 'showPrompt'];
+    functions.forEach(func => {
+        if (typeof window[func] === 'function') {
+            console.log(`✓ ${func} is available`);
+        } else {
+            console.error(`✗ ${func} is NOT available`);
+        }
+    });
+    
+    // Check if Bootstrap is loaded
+    if (typeof bootstrap !== 'undefined') {
+        console.log('✓ Bootstrap is loaded');
+        console.log('  - Version:', bootstrap.Tooltip?.VERSION || 'Unknown');
+        console.log('  - Modal available:', typeof bootstrap.Modal);
+    } else {
+        console.error('✗ Bootstrap is NOT loaded');
+    }
+    
+    // Check for modal element
+    const modalElement = document.getElementById('customMessageModal');
+    if (modalElement) {
+        console.log('✓ Custom message modal element found');
+        console.log('  - Element:', modalElement);
+    } else {
+        console.error('✗ Custom message modal element NOT found');
+    }
+    
+    // Try to call debugMessageBox if available
+    if (typeof debugMessageBox === 'function') {
+        console.log('Running debugMessageBox...');
+        debugMessageBox();
+    }
+    
+    console.log('Initialization complete');
+});
+</script>
+{% endblock %}

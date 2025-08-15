@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debt Management - Ozark Finances</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a class="navbar-brand" href="index.html">
+                    <i class="fas fa-chart-line me-2"></i>Ozark Finances
+                </a>
+                <ul class="navbar-nav">
+                    <li><a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+                    <li><a class="nav-link" href="invoices.html"><i class="fas fa-receipt me-1"></i>Invoices</a></li>
+                    <li><a class="nav-link" href="withdraws.html"><i class="fas fa-money-bill-wave me-1"></i>Withdraws</a></li>
+                    <li><a class="nav-link" href="important_info.html"><i class="fas fa-exclamation-circle me-1"></i>Important Info</a></li>
+                    <li><a class="nav-link active" href="debt.html"><i class="fas fa-credit-card me-1"></i>Debt</a></li>
+                    <li><a class="nav-link" href="card_variations.html"><i class="fas fa-palette me-1"></i>Card Designs</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">
+                    <i class="fas fa-credit-card me-2"></i>Debt Management
+                </h1>
+            </div>
+        </div>
+
+        <!-- Add New Debt -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-plus me-2"></i>Add New Debt Entry
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Account Name</label>
+                                        <input type="text" class="form-control" placeholder="e.g., Credit Card">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Amount (€)</label>
+                                        <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Date</label>
+                                        <input type="date" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Description</label>
+                                        <input type="text" class="form-control" placeholder="Optional description">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i>Add Entry
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debt Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Total Debt</h6>
+                        <h3 class="text-danger">€5,750.00</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Active Accounts</h6>
+                        <h3 class="text-primary">3</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Highest Debt</h6>
+                        <h3 class="text-danger">€2,500.00</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Avg. per Account</h6>
+                        <h3 class="text-primary">€1,916.67</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debt Accounts Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Debt by Account
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted">ING Credit Card</h6>
+                                        <h4 class="text-danger">€2,500.00</h4>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar" style="width: 43.5%"></div>
+                                        </div>
+                                        <small class="text-muted">43.5% of total debt</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted">ABN AMRO Loan</h6>
+                                        <h4 class="text-danger">€1,950.00</h4>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar" style="width: 33.9%"></div>
+                                        </div>
+                                        <small class="text-muted">33.9% of total debt</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted">Personal Loan</h6>
+                                        <h4 class="text-danger">€1,300.00</h4>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar" style="width: 22.6%"></div>
+                                        </div>
+                                        <small class="text-muted">22.6% of total debt</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debt History Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>Debt Transaction History
+                        </h5>
+                        <span class="text-muted">Recent transactions</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Account</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Balance</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>24-12-2024</td>
+                                        <td>ING Credit Card</td>
+                                        <td><span class="badge badge-danger">Charge</span></td>
+                                        <td class="text-danger">+€150.00</td>
+                                        <td class="text-danger">€2,500.00</td>
+                                        <td>Online purchase</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>22-12-2024</td>
+                                        <td>ABN AMRO Loan</td>
+                                        <td><span class="badge badge-success">Payment</span></td>
+                                        <td class="text-success">-€200.00</td>
+                                        <td class="text-danger">€1,950.00</td>
+                                        <td>Monthly payment</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>20-12-2024</td>
+                                        <td>Personal Loan</td>
+                                        <td><span class="badge badge-success">Payment</span></td>
+                                        <td class="text-success">-€100.00</td>
+                                        <td class="text-danger">€1,300.00</td>
+                                        <td>Partial payment</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>18-12-2024</td>
+                                        <td>ING Credit Card</td>
+                                        <td><span class="badge badge-success">Payment</span></td>
+                                        <td class="text-success">-€300.00</td>
+                                        <td class="text-danger">€2,350.00</td>
+                                        <td>Credit card payment</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>15-12-2024</td>
+                                        <td>ABN AMRO Loan</td>
+                                        <td><span class="badge badge-danger">Interest</span></td>
+                                        <td class="text-danger">+€25.00</td>
+                                        <td class="text-danger">€2,150.00</td>
+                                        <td>Monthly interest</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>12-12-2024</td>
+                                        <td>Personal Loan</td>
+                                        <td><span class="badge badge-danger">Charge</span></td>
+                                        <td class="text-danger">+€75.00</td>
+                                        <td class="text-danger">€1,400.00</td>
+                                        <td>Late fee</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Plan -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-check me-2"></i>Recommended Payment Plan
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Debt Payoff Strategy:</strong> Focus on highest interest rate first (avalanche method)
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6 class="text-primary">Priority 1: ING Credit Card</h6>
+                                <p class="text-muted">€2,500.00 @ 18% APR</p>
+                                <p><strong>Minimum payment:</strong> €75/month</p>
+                                <p><strong>Recommended:</strong> €400/month</p>
+                                <small class="text-success">Payoff in 7 months</small>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-primary">Priority 2: ABN AMRO Loan</h6>
+                                <p class="text-muted">€1,950.00 @ 12% APR</p>
+                                <p><strong>Minimum payment:</strong> €150/month</p>
+                                <p><strong>Recommended:</strong> €200/month</p>
+                                <small class="text-success">Payoff in 11 months</small>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-primary">Priority 3: Personal Loan</h6>
+                                <p class="text-muted">€1,300.00 @ 8% APR</p>
+                                <p><strong>Minimum payment:</strong> €100/month</p>
+                                <p><strong>Recommended:</strong> €100/month</p>
+                                <small class="text-success">Payoff in 14 months</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

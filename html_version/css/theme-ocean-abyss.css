@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Ocean Abyss */
+
+:root {
+    /* Dark Theme Base Colors - Ocean Abyss */
+    --bg-dark: #051219;
+    --control-dark: #0a1929;
+    --text-light: #e1f5fe;
+    --text-muted: #81d4fa;
+    --border-color: #1565c0;
+    --hover-color: #0d47a1;
+    
+    /* Accent Colors - Ocean Focused */
+    --primary-color: #2196f3;
+    --primary-hover: #1976d2;
+    --success-color: #26c6da;
+    --success-light: #4dd0e1;
+    --danger-color: #f44336;
+    --danger-light: #ef5350;
+    --warning-color: #ffa726;
+    --info-color: #00acc1;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(33, 150, 243, 0.04);
+    --bg-medium-overlay: rgba(33, 150, 243, 0.08);
+    --bg-strong-overlay: rgba(33, 150, 243, 0.15);
+    
+    /* Border Variants */
+    --border-light: #1976d2;
+    --border-medium: #1e88e5;
+    --border-strong: #2196f3;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

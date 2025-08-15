@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Emerald Depths */
+
+:root {
+    /* Dark Theme Base Colors - Emerald Depths */
+    --bg-dark: #0a1a0a;
+    --control-dark: #1b2d1b;
+    --text-light: #e8f5e8;
+    --text-muted: #a5d6a7;
+    --border-color: #2e7d32;
+    --hover-color: #1b5e20;
+    
+    /* Accent Colors - Emerald Focused */
+    --primary-color: #00e676;
+    --primary-hover: #00c853;
+    --success-color: #4caf50;
+    --success-light: #81c784;
+    --danger-color: #f44336;
+    --danger-light: #ef5350;
+    --warning-color: #ffc107;
+    --info-color: #03dac6;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(0, 230, 118, 0.04);
+    --bg-medium-overlay: rgba(0, 230, 118, 0.08);
+    --bg-strong-overlay: rgba(0, 230, 118, 0.15);
+    
+    /* Border Variants */
+    --border-light: #388e3c;
+    --border-medium: #43a047;
+    --border-strong: #4caf50;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

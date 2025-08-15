@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block title %}Debt Analytics - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-chart-line me-2"></i>Debt Analytics
+            </h1>
+            <a href="{{ url_for('debt') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Debts
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if analytics.debt_summary %}
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-primary">
+            <div class="card-body text-center">
+                <i class="fas fa-list fa-2x mb-2"></i>
+                <h4 class="mb-0">{{ analytics.debt_summary.debt_count }}</h4>
+                <small>Total Debts</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-danger">
+            <div class="card-body text-center">
+                <i class="fas fa-euro-sign fa-2x mb-2"></i>
+                <h4 class="mb-0">{{ format_euro(analytics.debt_summary.total_current) }}</h4>
+                <small>Remaining</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-success">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <h4 class="mb-0">{{ format_euro(analytics.debt_summary.total_paid) }}</h4>
+                <small>Paid Off</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-info">
+            <div class="card-body text-center">
+                <i class="fas fa-money-bill fa-2x mb-2"></i>
+                <h4 class="mb-0">{{ format_euro(analytics.debt_summary.total_original) }}</h4>
+                <small>Original Total</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-percentage fa-2x mb-2"></i>
+                <h4 class="mb-0">{{ "%.1f"|format(analytics.debt_summary.progress_percent) }}%</h4>
+                <small>Progress</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-secondary">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                <h4 class="mb-0">{{ format_euro(analytics.payments.min_monthly) }}</h4>
+                <small>Min. Monthly</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Debt Distribution by Category -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Debt Distribution by Category
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if analytics.categories %}
+                <canvas id="categoryChart" width="400" height="200"></canvas>
+                {% else %}
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                    <p>No category data available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monthly Payment Trends -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Monthly Payment Trends
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if analytics.monthly_payments %}
+                <canvas id="trendsChart" width="400" height="200"></canvas>
+                {% else %}
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>No payment history available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Breakdown Table -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Category Breakdown
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Count</th>
+                                <th>Current Total</th>
+                                <th>Original Total</th>
+                                <th>% of Total Debt</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category, data in analytics.categories.items() %}
+                            {% set progress = ((data.original - data.total) / data.original * 100) if data.original > 0 else 0 %}
+                            {% set percent_of_total = (data.total / analytics.debt_summary.total_current * 100) if analytics.debt_summary.total_current > 0 else 0 %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary">{{ category }}</span>
+                                </td>
+                                <td>{{ data.count }}</td>
+                                <td>{{ format_euro(data.total) }}</td>
+                                <td>{{ format_euro(data.original) }}</td>
+                                <td>{{ "%.1f"|format(percent_of_total) }}%</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar 
+                                            {% if progress < 25 %}bg-danger
+                                            {% elif progress < 75 %}bg-warning
+                                            {% else %}bg-success{% endif %}" 
+                                            role="progressbar" 
+                                            style="width: {{ progress }}%">
+                                            {{ "%.1f"|format(progress) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Interest Analysis -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-percentage me-2"></i>Interest Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if analytics.payments.total_with_interest > 0 %}
+                <div class="row mb-3">
+                    <div class="col-6"><strong>Avg. Interest:</strong></div>
+                    <div class="col-6 text-end">{{ "%.2f"|format(analytics.payments.avg_interest) }}%</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6"><strong>Interest Debt:</strong></div>
+                    <div class="col-6 text-end">{{ format_euro(analytics.payments.total_with_interest) }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6"><strong>% With Interest:</strong></div>
+                    <div class="col-6 text-end">
+                        {{ "%.1f"|format((analytics.payments.total_with_interest / analytics.debt_summary.total_current * 100)) }}%
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted">
+                    <i class="fas fa-info-circle me-2"></i>No interest-bearing debts
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <!-- Debt Priority Recommendations -->
+                <h6 class="mb-3">Priority Recommendations</h6>
+                {% for debt in analytics.debt_list[:3] %}
+                {% if debt.InterestRate and debt.InterestRate > 0 %}
+                <div class="mb-2">
+                    <small class="text-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        {{ debt.DebtName }} ({{ debt.InterestRate }}% interest)
+                    </small>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Debt Analysis -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list-alt me-2"></i>Detailed Debt Analysis
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Debt Name</th>
+                                <th>Current</th>
+                                <th>Original</th>
+                                <th>Paid</th>
+                                <th>Category</th>
+                                <th>Interest Rate</th>
+                                <th>Due Date</th>
+                                <th>Progress</th>
+                                <th>Priority Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for debt in analytics.debt_list %}
+                            {% set progress = ((debt.OriginalDebt - debt.Amount) / debt.OriginalDebt * 100) if debt.OriginalDebt > 0 else 0 %}
+                            {% set total_paid = debt.OriginalDebt - debt.Amount %}
+                            {% set priority_score = (debt.InterestRate or 0) + (debt.Amount / 1000) %}
+                            <tr>
+                                <td>
+                                    <strong>{{ debt.DebtName }}</strong>
+                                    {% if debt.DueDate %}
+                                    {% set due_date = debt.DueDate|strptime('%Y-%m-%d') %}
+                                    {% set days_until = (due_date - datetime.now().date()).days %}
+                                    {% if days_until < 0 %}
+                                    <br><small class="text-danger">{{ days_until|abs }} days overdue</small>
+                                    {% elif days_until <= 30 %}
+                                    <br><small class="text-warning">{{ days_until }} days left</small>
+                                    {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>{{ format_euro(debt.Amount) }}</td>
+                                <td>{{ format_euro(debt.OriginalDebt) }}</td>
+                                <td>{{ format_euro(total_paid) }}</td>
+                                <td>
+                                    {% if debt.Category %}
+                                    <span class="badge bg-secondary">{{ debt.Category }}</span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if debt.InterestRate and debt.InterestRate > 0 %}
+                                    <span class="text-warning">{{ debt.InterestRate }}%</span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if debt.DueDate %}
+                                    {{ debt.DueDate }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 15px;">
+                                        <div class="progress-bar 
+                                            {% if progress < 25 %}bg-danger
+                                            {% elif progress < 75 %}bg-warning
+                                            {% else %}bg-success{% endif %}" 
+                                            role="progressbar" 
+                                            style="width: {{ progress }}%">
+                                        </div>
+                                    </div>
+                                    <small>{{ "%.1f"|format(progress) }}%</small>
+                                </td>
+                                <td>
+                                    {% if priority_score > 10 %}
+                                    <span class="badge bg-danger">High</span>
+                                    {% elif priority_score > 5 %}
+                                    <span class="badge bg-warning">Medium</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Low</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- No Data State -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center p-5">
+                <i class="fas fa-chart-line fa-5x text-muted mb-4"></i>
+                <h3 class="text-muted">No Debt Data Available</h3>
+                <p class="text-muted mb-4">Add some debts to see analytics and insights.</p>
+                <a href="{{ url_for('debt') }}" class="btn btn-custom">
+                    <i class="fas fa-plus me-1"></i>Add Your First Debt
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if analytics.debt_summary %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Category Chart
+{% if analytics.categories %}
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for category in analytics.categories.keys() %}'{{ category }}'{{ ',' if not loop.last }}{% endfor %}],
+        datasets: [{
+            data: [{% for data in analytics.categories.values() %}{{ data.total }}{{ ',' if not loop.last }}{% endfor %}],
+            backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    color: '#fff'
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+// Trends Chart
+{% if analytics.monthly_payments %}
+const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+const trendsChart = new Chart(trendsCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for month, amount in analytics.monthly_payments %}'{{ month }}'{{ ',' if not loop.last }}{% endfor %}],
+        datasets: [{
+            label: 'Monthly Payments',
+            data: [{% for month, amount in analytics.monthly_payments %}{{ amount }}{{ ',' if not loop.last }}{% endfor %}],
+            borderColor: '#36A2EB',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: '#fff',
+                    callback: function(value) {
+                        return '€' + value.toFixed(2);
+                    }
+                }
+            },
+            x: {
+                ticks: {
+                    color: '#fff'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#fff'
+                }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endif %}
+{% endblock %}

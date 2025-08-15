@@ -1,0 +1,1015 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Ozark Finances{% endblock %}
+
+{% block content %}
+<style>
+/* Collapsible card header styling */
+.card-header .btn-link {
+    font-size: 1.25rem;
+    font-weight: 500;
+    width: 100%;
+    text-align: left;
+}
+
+.card-header .btn-link:hover {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 0.375rem;
+    padding: 0.5rem !important;
+}
+
+.card-header .btn-link:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+.collapse-icon {
+    transition: transform 0.3s ease;
+    float: right;
+}
+
+/* Card header background for better visual separation */
+.card-header {
+    background-color: var(--control-dark) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Make all cards the same height */
+.settings-card-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.settings-card-container .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-card-container .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure inner cards within settings sections are uniform */
+.inner-card {
+    height: 100%;
+    min-height: 400px !important; /* Increased minimum height */
+}
+
+.inner-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Changed to space-between for better distribution */
+    padding: 1.5rem;
+    min-height: 350px; /* Set minimum content height */
+}
+
+.inner-card .card-title {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0; /* Prevent title from shrinking */
+}
+
+.settings-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly; /* Evenly distribute form elements */
+}
+
+/* Ensure form elements are consistently spaced */
+.inner-card .mb-3 {
+    margin-bottom: 1.5rem !important;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.inner-card .mb-3:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Add some padding between form groups */
+.inner-card .form-label {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.inner-card .form-check {
+    margin-bottom: 0.5rem;
+}
+
+.inner-card small.text-muted {
+    margin-top: 0.5rem;
+    display: block;
+    line-height: 1.3;
+}
+
+/* Responsive card heights */
+@media (min-width: 768px) {
+    .row.equal-height {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .row.equal-height > [class*='col-'] {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .row.equal-height .inner-card {
+        flex: 1;
+    }
+}
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>
+                        <i class="fas fa-cog"></i> 
+                        Application Settings
+                    </h2>
+                    <p class="mb-0 text-muted">Manage your Ozark Finances application settings and data</p>
+                </div>
+            </div>
+            
+            <!-- Collapse Controls -->
+            <div class="card mb-4">
+                <div class="card-body text-center py-2">
+                    <button type="button" class="btn btn-outline-info btn-sm me-2" onclick="expandAllSettings()">
+                        <i class="fas fa-expand-alt me-1"></i>Expand All
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="collapseAllSettings()">
+                        <i class="fas fa-compress-alt me-1"></i>Collapse All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Invoice Display Settings -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none p-0 text-light" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#invoiceDisplaySettings" 
+                                aria-expanded="true" aria-controls="invoiceDisplaySettings">
+                            <i class="fas fa-receipt me-2"></i>Invoice Display Settings
+                            <i class="fas fa-chevron-down ms-2 collapse-icon"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse show" id="invoiceDisplaySettings">
+                    <div class="card-body">
+                    <p class="text-muted mb-4">Configure how invoices are displayed and interacted with in the invoice management page.</p>
+                    
+                    <div class="row equal-height">
+                        <div class="col-md-6">
+                            <div class="card inner-card" style="background-color: var(--control-dark); border-color: var(--border-color);">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-cog text-info me-2"></i>Display Settings
+                                    </h6>
+                                    
+                                    <div class="settings-content">
+                                        <div class="mb-3">
+                                            <label for="itemsPerPage" class="form-label">Items Per Page</label>
+                                            <select class="form-select form-select-sm" id="itemsPerPage">
+                                                <option value="10">10 items</option>
+                                                <option value="25">25 items</option>
+                                                <option value="50" selected>50 items</option>
+                                                <option value="100">100 items</option>
+                                            </select>
+                                            <small class="text-muted">Number of invoices to display per page</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="compactView" class="form-label">Table Layout</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="compactView">
+                                                <label class="form-check-label" for="compactView">
+                                                    Use compact table layout
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Reduce spacing between rows for more data visibility</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="showRowNumbers" class="form-label">Row Numbers</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showRowNumbers">
+                                                <label class="form-check-label" for="showRowNumbers">
+                                                    Show row numbers
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Display sequential numbers for each row</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card inner-card" style="background-color: var(--control-dark); border-color: var(--border-color);">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-palette text-primary me-2"></i>Visual Options
+                                    </h6>
+                                    
+                                    <div class="settings-content">
+                                        <div class="mb-3">
+                                            <label for="showStatusColumn" class="form-label">Status Indicators</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showStatusColumn" checked>
+                                                <label class="form-check-label" for="showStatusColumn">
+                                                    Show payment status badges
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Display color-coded status indicators (Paid, Pending, Overdue, Draft)</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="defaultPaymentStatus" class="form-label">Default Payment Status</label>
+                                            <select class="form-select form-select-sm" id="defaultPaymentStatus">
+                                                <option value="pending" selected>Pending</option>
+                                                <option value="paid">Paid</option>
+                                                <option value="draft">Draft</option>
+                                                <option value="overdue">Overdue</option>
+                                            </select>
+                                            <small class="text-muted">Default status for new invoices</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="actionButtonSize" class="form-label">Action Button Size</label>
+                                            <select class="form-select form-select-sm" id="actionButtonSize">
+                                                <option value="btn-sm" selected>Small</option>
+                                                <option value="">Normal</option>
+                                                <option value="btn-lg">Large</option>
+                                            </select>
+                                            <small class="text-muted">Size of action buttons in the Actions column</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bin Management Settings -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none p-0 text-light" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#binManagementSettings" 
+                                aria-expanded="false" aria-controls="binManagementSettings">
+                            <i class="fas fa-trash-alt me-2"></i>Bin Management Settings
+                            <i class="fas fa-chevron-down ms-2 collapse-icon"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="binManagementSettings">
+                    <div class="card-body">
+                    <p class="text-muted mb-4">Configure how the invoice bin system works and automatic cleanup settings.</p>
+                    
+                    <div class="row equal-height">
+                        <div class="col-md-6">
+                            <div class="card inner-card" style="background-color: var(--control-dark); border-color: var(--border-color);">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-clock text-warning me-2"></i>Retention Policy
+                                    </h6>
+                                    
+                                    <div class="settings-content">
+                                        <div class="mb-3">
+                                            <label for="binRetentionPeriod" class="form-label">Bin Retention Period</label>
+                                            <select class="form-select form-select-sm" id="binRetentionPeriod">
+                                                <option value="30">30 days</option>
+                                                <option value="60" selected>60 days</option>
+                                                <option value="90">90 days</option>
+                                                <option value="0">Never (manual only)</option>
+                                            </select>
+                                            <small class="text-muted">How long to keep items in bin before permanent deletion</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="autoEmptyBin" class="form-label">Auto-empty Bin</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="autoEmptyBin">
+                                                <label class="form-check-label" for="autoEmptyBin">
+                                                    Automatically delete old bin items
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Automatically delete items after retention period expires</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="binNotifications" class="form-label">Bin Notifications</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="binNotifications" checked>
+                                                <label class="form-check-label" for="binNotifications">
+                                                    Show bin count in navigation
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Display number of items in bin on the navigation menu</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card inner-card" style="background-color: var(--control-dark); border-color: var(--border-color);">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-shield-alt text-success me-2"></i>Safety Settings
+                                    </h6>
+                                    
+                                    <div class="settings-content">
+                                        <div class="mb-3">
+                                            <label for="confirmBinActions" class="form-label">Confirmation Requirements</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="confirmBinActions" checked>
+                                                <label class="form-check-label" for="confirmBinActions">
+                                                    Require confirmation for bin operations
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Ask for confirmation before moving items to bin</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="confirmBulkDelete" class="form-label">Bulk Delete Protection</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="confirmBulkDelete" checked>
+                                                <label class="form-check-label" for="confirmBulkDelete">
+                                                    Require "delete" confirmation text
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Require typing "delete" for bulk operations</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="showDeleteWarnings" class="form-label">Delete Warnings</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showDeleteWarnings" checked>
+                                                <label class="form-check-label" for="showDeleteWarnings">
+                                                    Show warnings for destructive actions
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Display warning messages before permanent deletions</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Note:</strong> Changes to bin retention settings will take effect immediately. Items past the retention period may be automatically deleted if auto-empty is enabled.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Button Settings -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none p-0 text-light" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#actionButtonSettings" 
+                                aria-expanded="false" aria-controls="actionButtonSettings">
+                            <i class="fas fa-mouse-pointer me-2"></i>Action Button Settings
+                            <i class="fas fa-chevron-down ms-2 collapse-icon"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="actionButtonSettings">
+                    <div class="card-body">
+                    <p class="text-muted mb-4">Configure which action buttons are available and how they behave.</p>
+                    
+                    <div class="row equal-height">
+                        <div class="col-md-6">
+                            <div class="card inner-card" style="background-color: var(--control-dark); border-color: var(--border-color);">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-eye text-info me-2"></i>Available Actions
+                                    </h6>
+                                    
+                                    <div class="settings-content">
+                                        <div class="mb-3">
+                                            <label for="showDownloadButton" class="form-label">Download Button</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showDownloadButton" checked>
+                                                <label class="form-check-label" for="showDownloadButton">
+                                                    Show download button for each invoice
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Allow users to download individual invoices as Excel files</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="showBinButton" class="form-label">Move to Bin Button</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showBinButton" checked>
+                                                <label class="form-check-label" for="showBinButton">
+                                                    Show move to bin button
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Allow users to move invoices to the bin</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="showBulkActions" class="form-label">Bulk Actions</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showBulkActions">
+                                                <label class="form-check-label" for="showBulkActions">
+                                                    Enable bulk action checkboxes
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Show checkboxes for multi-select operations</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card inner-card" style="background-color: var(--control-dark); border-color: var(--border-color);">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-cogs text-secondary me-2"></i>Button Behavior
+                                    </h6>
+                                    
+                                    <div class="settings-content">
+                                        <div class="mb-3">
+                                            <label for="confirmDestructiveActions" class="form-label">Destructive Action Confirmation</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="confirmDestructiveActions" checked>
+                                                <label class="form-check-label" for="confirmDestructiveActions">
+                                                    Require confirmation for delete/bin actions
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Show confirmation dialog before performing destructive actions</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="downloadFormat" class="form-label">Download Format</label>
+                                            <select class="form-select form-select-sm" id="downloadFormat">
+                                                <option value="xlsx" selected>Excel (.xlsx)</option>
+                                                <option value="csv">CSV (.csv)</option>
+                                                <option value="pdf">PDF (.pdf) - Future</option>
+                                            </select>
+                                            <small class="text-muted">Default format for invoice downloads</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="doubleClickAction" class="form-label">Double-Click Action</label>
+                                            <select class="form-select form-select-sm" id="doubleClickAction">
+                                                <option value="download" selected>Download Invoice</option>
+                                                <option value="edit">Edit Invoice</option>
+                                                <option value="none">No Action</option>
+                                            </select>
+                                            <small class="text-muted">Action to perform when double-clicking on an invoice row</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraws Management Settings -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none p-0 text-light" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#withdrawsSettings" 
+                                aria-expanded="false" aria-controls="withdrawsSettings">
+                            <i class="fas fa-credit-card me-2"></i>Withdraws Management Settings
+                            <i class="fas fa-chevron-down ms-2 collapse-icon"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="withdrawsSettings">
+                    <div class="card-body">
+                    <p class="text-muted mb-4">Configure how withdraws are displayed and managed throughout the application.</p>
+                    
+                    <div class="row equal-height">
+                        <div class="col-md-6">
+                            <div class="card inner-card" style="background-color: var(--control-dark); border-color: var(--border-color);">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-list text-info me-2"></i>Display Options
+                                    </h6>
+                                    
+                                    <div class="settings-content">
+                                        <div class="mb-3">
+                                            <label for="withdrawItemsPerPage" class="form-label">Items Per Page</label>
+                                            <select class="form-select form-select-sm" id="withdrawItemsPerPage">
+                                                <option value="25">25 items</option>
+                                                <option value="50" selected>50 items</option>
+                                                <option value="100">100 items</option>
+                                                <option value="200">200 items</option>
+                                            </select>
+                                            <small class="text-muted">Number of withdraw entries to display per page</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="withdrawCompactView" class="form-label">Table Layout</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="withdrawCompactView">
+                                                <label class="form-check-label" for="withdrawCompactView">
+                                                    Use compact table layout
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Reduce spacing between rows for more data visibility</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="showWithdrawTotals" class="form-label">Show Summary Totals</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showWithdrawTotals" checked>
+                                                <label class="form-check-label" for="showWithdrawTotals">
+                                                    Display total amounts and counts
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Show summary statistics at the top of the withdraw page</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card inner-card" style="background-color: var(--control-dark); border-color: var(--border-color);">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-shield-alt text-warning me-2"></i>Data Management
+                                    </h6>
+                                    
+                                    <div class="settings-content">
+                                        <div class="mb-3">
+                                            <label for="confirmWithdrawDelete" class="form-label">Delete Confirmation</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="confirmWithdrawDelete" checked>
+                                                <label class="form-check-label" for="confirmWithdrawDelete">
+                                                    Require confirmation for delete actions
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Ask for confirmation before deleting withdraw entries</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="withdrawDefaultSort" class="form-label">Default Sort Order</label>
+                                            <select class="form-select form-select-sm" id="withdrawDefaultSort">
+                                                <option value="date_desc" selected>Date (Newest First)</option>
+                                                <option value="date_asc">Date (Oldest First)</option>
+                                                <option value="amount_desc">Amount (High to Low)</option>
+                                                <option value="amount_asc">Amount (Low to High)</option>
+                                                <option value="description">Description (A-Z)</option>
+                                            </select>
+                                            <small class="text-muted">Default sorting for the withdraws table</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="showWithdrawActions" class="form-label">Action Buttons</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="showWithdrawActions" checked>
+                                                <label class="form-check-label" for="showWithdrawActions">
+                                                    Show edit/delete action buttons
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Display action buttons for each withdraw entry</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Settings Button -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <button type="button" class="btn btn-success btn-lg" onclick="saveSettings()">
+                        <i class="fas fa-save me-2"></i>Save Settings
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg ms-2" onclick="resetSettings()">
+                        <i class="fas fa-undo me-2"></i>Reset to Defaults
+                    </button>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Settings are saved locally in your browser. Changes take effect immediately.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Management -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-download"></i> Data Export</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Export your application data for backup or analysis purposes.</p>
+                    
+                    <form method="POST" action="{{ url_for('export_data') }}" class="d-inline">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="export_type" class="form-label">Export Type</label>
+                                <select class="form-select" id="export_type" name="export_type" required>
+                                    <option value="">Select data to export...</option>
+                                    <option value="invoices">Invoices Only</option>
+                                    <option value="withdraws">Withdraws Only</option>
+                                    <option value="all">Complete Database</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-download"></i> Export Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="alert alert-info mt-3" style="background-color: var(--control-dark); border-color: #0d6efd;">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> Exported files will be saved in CSV format. Complete database export creates a ZIP file with all tables.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Management -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-trash-alt"></i> File Management</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Clean up temporary files and uploads to free up disk space.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card" style="background-color: var(--control-dark); border-color: #dc3545;">
+                                <div class="card-body">
+                                    <h6 class="card-title text-danger">
+                                        <i class="fas fa-file-excel"></i> Clear Generated Files
+                                    </h6>
+                                    <p class="card-text small">Remove all generated Excel files and exports from the system.</p>
+                                    <form method="POST" action="{{ url_for('clear_data') }}" onsubmit="return confirmClear('generated files')">
+                                        <input type="hidden" name="clear_type" value="generated_files">
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control form-control-sm" name="confirmation" 
+                                                   placeholder="Type 'delete' to confirm" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Clear Generated Files
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card" style="background-color: var(--control-dark); border-color: #dc3545;">
+                                <div class="card-body">
+                                    <h6 class="card-title text-danger">
+                                        <i class="fas fa-upload"></i> Clear Uploaded Files
+                                    </h6>
+                                    <p class="card-text small">Remove all uploaded images and temporary files.</p>
+                                    <form method="POST" action="{{ url_for('clear_data') }}" onsubmit="return confirmClear('uploaded files')">
+                                        <input type="hidden" name="clear_type" value="uploads">
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control form-control-sm" name="confirmation" 
+                                                   placeholder="Type 'delete' to confirm" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Clear Uploads
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add new option for clearing imported data -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card" style="background-color: var(--control-dark); border-color: #dc3545;">
+                                <div class="card-body">
+                                    <h6 class="card-title text-danger">
+                                        <i class="fas fa-database"></i> Clear Imported Invoice Data
+                                    </h6>
+                                    <p class="card-text small">Remove all imported invoice records from the database. This will delete all invoice data!</p>
+                                    <form method="POST" action="{{ url_for('clear_data') }}" onsubmit="return confirmClear('imported invoice data')">
+                                        <input type="hidden" name="clear_type" value="imported_data">
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control form-control-sm" name="confirmation" 
+                                                   placeholder="Type 'delete' to confirm" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Clear Invoice Data
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card" style="background-color: var(--control-dark); border-color: #dc3545;">
+                                <div class="card-body">
+                                    <h6 class="card-title text-danger">
+                                        <i class="fas fa-credit-card"></i> Clear All Withdraw Data
+                                    </h6>
+                                    <p class="card-text small">Remove all withdraw records from the database. This will delete all withdraw history!</p>
+                                    <form method="POST" action="{{ url_for('clear_data') }}" onsubmit="return confirmClear('all withdraw data')">
+                                        <input type="hidden" name="clear_type" value="withdraw_data">
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control form-control-sm" name="confirmation" 
+                                                   placeholder="Type 'delete' to confirm" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Clear Withdraw Data
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Management -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <h6 class="mb-3">
+                        <i class="fas fa-save me-2"></i>Settings Management
+                    </h6>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-success" onclick="saveSettings()">
+                            <i class="fas fa-save me-1"></i>Save Settings
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="resetSettings()">
+                            <i class="fas fa-undo me-1"></i>Reset to Defaults
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Settings are saved locally in your browser and persist across sessions.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmClear(fileType) {
+    return confirm(`Are you sure you want to delete all ${fileType}? This action cannot be undone.`);
+}
+
+// Settings Management
+function saveSettings() {
+    const settings = {
+        // Display Options
+        itemsPerPage: document.getElementById('itemsPerPage').value,
+        compactView: document.getElementById('compactView').checked,
+        showRowNumbers: document.getElementById('showRowNumbers').checked,
+        showStatusColumn: document.getElementById('showStatusColumn').checked,
+        defaultPaymentStatus: document.getElementById('defaultPaymentStatus').value,
+        actionButtonSize: document.getElementById('actionButtonSize').value,
+        
+        // Bin Management
+        binRetentionPeriod: document.getElementById('binRetentionPeriod').value,
+        autoEmptyBin: document.getElementById('autoEmptyBin').checked,
+        binNotifications: document.getElementById('binNotifications').checked,
+        confirmBinActions: document.getElementById('confirmBinActions').checked,
+        confirmBulkDelete: document.getElementById('confirmBulkDelete').checked,
+        showDeleteWarnings: document.getElementById('showDeleteWarnings').checked,
+        
+        // Action Buttons
+        showDownloadButton: document.getElementById('showDownloadButton').checked,
+        showBinButton: document.getElementById('showBinButton').checked,
+        showBulkActions: document.getElementById('showBulkActions').checked,
+        confirmDestructiveActions: document.getElementById('confirmDestructiveActions').checked,
+        downloadFormat: document.getElementById('downloadFormat').value,
+        doubleClickAction: document.getElementById('doubleClickAction').value,
+        
+        // Withdraws Management
+        withdrawItemsPerPage: document.getElementById('withdrawItemsPerPage').value,
+        withdrawCompactView: document.getElementById('withdrawCompactView').checked,
+        showWithdrawTotals: document.getElementById('showWithdrawTotals').checked,
+        confirmWithdrawDelete: document.getElementById('confirmWithdrawDelete').checked,
+        withdrawDefaultSort: document.getElementById('withdrawDefaultSort').value,
+        showWithdrawActions: document.getElementById('showWithdrawActions').checked
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('ozarkFinancesSettings', JSON.stringify(settings));
+    
+    // Show success message
+    showSettingsAlert('Settings saved successfully!', 'success');
+}
+
+function loadSettings() {
+    const savedSettings = localStorage.getItem('ozarkFinancesSettings');
+    if (!savedSettings) return;
+    
+    try {
+        const settings = JSON.parse(savedSettings);
+        
+        // Apply Display Options
+        if (settings.itemsPerPage) 
+            document.getElementById('itemsPerPage').value = settings.itemsPerPage;
+        if (settings.compactView !== undefined)
+            document.getElementById('compactView').checked = settings.compactView;
+        if (settings.showRowNumbers !== undefined)
+            document.getElementById('showRowNumbers').checked = settings.showRowNumbers;
+        if (settings.showStatusColumn !== undefined)
+            document.getElementById('showStatusColumn').checked = settings.showStatusColumn;
+        if (settings.defaultPaymentStatus)
+            document.getElementById('defaultPaymentStatus').value = settings.defaultPaymentStatus;
+        if (settings.actionButtonSize)
+            document.getElementById('actionButtonSize').value = settings.actionButtonSize;
+        
+        // Apply Bin Management settings
+        if (settings.binRetentionPeriod)
+            document.getElementById('binRetentionPeriod').value = settings.binRetentionPeriod;
+        if (settings.autoEmptyBin !== undefined)
+            document.getElementById('autoEmptyBin').checked = settings.autoEmptyBin;
+        if (settings.binNotifications !== undefined)
+            document.getElementById('binNotifications').checked = settings.binNotifications;
+        if (settings.confirmBinActions !== undefined)
+            document.getElementById('confirmBinActions').checked = settings.confirmBinActions;
+        if (settings.confirmBulkDelete !== undefined)
+            document.getElementById('confirmBulkDelete').checked = settings.confirmBulkDelete;
+        if (settings.showDeleteWarnings !== undefined)
+            document.getElementById('showDeleteWarnings').checked = settings.showDeleteWarnings;
+        
+        // Apply Action Button settings
+        if (settings.showDownloadButton !== undefined)
+            document.getElementById('showDownloadButton').checked = settings.showDownloadButton;
+        if (settings.showBinButton !== undefined)
+            document.getElementById('showBinButton').checked = settings.showBinButton;
+        if (settings.showBulkActions !== undefined)
+            document.getElementById('showBulkActions').checked = settings.showBulkActions;
+        if (settings.confirmDestructiveActions !== undefined)
+            document.getElementById('confirmDestructiveActions').checked = settings.confirmDestructiveActions;
+        if (settings.downloadFormat)
+            document.getElementById('downloadFormat').value = settings.downloadFormat;
+        if (settings.doubleClickAction)
+            document.getElementById('doubleClickAction').value = settings.doubleClickAction;
+        
+        // Apply Withdraws Management settings
+        if (settings.withdrawItemsPerPage)
+            document.getElementById('withdrawItemsPerPage').value = settings.withdrawItemsPerPage;
+        if (settings.withdrawCompactView !== undefined)
+            document.getElementById('withdrawCompactView').checked = settings.withdrawCompactView;
+        if (settings.showWithdrawTotals !== undefined)
+            document.getElementById('showWithdrawTotals').checked = settings.showWithdrawTotals;
+        if (settings.confirmWithdrawDelete !== undefined)
+            document.getElementById('confirmWithdrawDelete').checked = settings.confirmWithdrawDelete;
+        if (settings.withdrawDefaultSort)
+            document.getElementById('withdrawDefaultSort').value = settings.withdrawDefaultSort;
+        if (settings.showWithdrawActions !== undefined)
+            document.getElementById('showWithdrawActions').checked = settings.showWithdrawActions;
+            
+    } catch (e) {
+        console.error('Error loading settings:', e);
+    }
+}
+
+function resetSettings() {
+    if (confirm('Are you sure you want to reset all settings to their default values?')) {
+        localStorage.removeItem('ozarkFinancesSettings');
+        location.reload(); // Reload to apply defaults
+    }
+}
+
+function showSettingsAlert(message, type) {
+    // Create alert element
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Add to page
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
+}
+
+function expandAllSettings() {
+    const collapseElements = document.querySelectorAll('.collapse:not(.show)');
+    collapseElements.forEach(function(collapseEl) {
+        const collapseInstance = new bootstrap.Collapse(collapseEl, {show: true});
+    });
+}
+
+function collapseAllSettings() {
+    const collapseElements = document.querySelectorAll('.collapse.show');
+    collapseElements.forEach(function(collapseEl) {
+        const collapseInstance = new bootstrap.Collapse(collapseEl, {hide: true});
+    });
+}
+
+// Load settings when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadSettings();
+    
+    // Add collapse event listeners for chevron rotation
+    const collapseElements = document.querySelectorAll('.collapse');
+    collapseElements.forEach(function(collapseEl) {
+        collapseEl.addEventListener('show.bs.collapse', function() {
+            const chevron = document.querySelector(`[data-bs-target="#${this.id}"] .collapse-icon`);
+            if (chevron) {
+                chevron.style.transform = 'rotate(180deg)';
+            }
+        });
+        
+        collapseEl.addEventListener('hide.bs.collapse', function() {
+            const chevron = document.querySelector(`[data-bs-target="#${this.id}"] .collapse-icon`);
+            if (chevron) {
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        });
+    });
+    
+    // Set initial chevron states
+    collapseElements.forEach(function(collapseEl) {
+        const chevron = document.querySelector(`[data-bs-target="#${collapseEl.id}"] .collapse-icon`);
+        if (chevron) {
+            if (collapseEl.classList.contains('show')) {
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                chevron.style.transform = 'rotate(0deg)';
+            }
+            chevron.style.transition = 'transform 0.3s ease';
+        }
+    });
+});
+</script>
+
+{% endblock %}

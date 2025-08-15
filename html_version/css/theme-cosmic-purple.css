@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Cosmic Purple */
+
+:root {
+    /* Dark Theme Base Colors - Cosmic Purple */
+    --bg-dark: #0f0a1a;
+    --control-dark: #1c142d;
+    --text-light: #ede7f6;
+    --text-muted: #b39ddb;
+    --border-color: #7b1fa2;
+    --hover-color: #4a148c;
+    
+    /* Accent Colors - Cosmic Focused */
+    --primary-color: #9c27b0;
+    --primary-hover: #7b1fa2;
+    --success-color: #66bb6a;
+    --success-light: #81c784;
+    --danger-color: #e91e63;
+    --danger-light: #f06292;
+    --warning-color: #ffb74d;
+    --info-color: #03a9f4;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(156, 39, 176, 0.04);
+    --bg-medium-overlay: rgba(156, 39, 176, 0.08);
+    --bg-strong-overlay: rgba(156, 39, 176, 0.15);
+    
+    /* Border Variants */
+    --border-light: #4a148c;
+    --border-medium: #7b1fa2;
+    --border-strong: #9c27b0;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

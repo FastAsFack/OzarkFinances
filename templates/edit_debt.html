@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Debt - {{ debt.DebtName }} - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-edit me-2"></i>Edit Debt: {{ debt.DebtName }}
+            </h1>
+            <a href="{{ url_for('debt') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Debts
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Debt Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="editDebtForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="debt_name" class="form-label">
+                                    <i class="fas fa-tag me-1"></i>Debt Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="debt_name" name="debt_name" 
+                                       value="{{ debt.DebtName }}" maxlength="21" required readonly>
+                                <div class="form-text">Debt name cannot be changed</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="current_amount" class="form-label">
+                                    <i class="fas fa-euro-sign me-1"></i>Current Amount <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input type="text" class="form-control" id="current_amount" name="current_amount" 
+                                           value="{{ debt.Amount }}" required data-validate="amount">
+                                </div>
+                                <div class="form-text">Direct adjustment of current amount</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="original_amount" class="form-label">
+                                    <i class="fas fa-money-bill me-1"></i>Original Amount <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input type="text" class="form-control" id="original_amount" name="original_amount" 
+                                           value="{{ debt.OriginalDebt }}" required data-validate="amount">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category" class="form-label">
+                                    <i class="fas fa-folder me-1"></i>Category
+                                </label>
+                                <input type="text" class="form-control" id="category" name="category" 
+                                       value="{{ debt.Category or '' }}" placeholder="e.g., Credit Card, Loan, Medical">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="due_date" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>Due Date
+                                </label>
+                                <input type="date" class="form-control" id="due_date" name="due_date" 
+                                       value="{{ debt.DueDate or '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="minimum_payment" class="form-label">
+                                    <i class="fas fa-money-bill me-1"></i>Minimum Payment (€)
+                                </label>
+                                <input type="number" class="form-control" id="minimum_payment" name="minimum_payment" 
+                                       value="{{ debt.MinimumPayment or '' }}" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="interest_rate" class="form-label">
+                                    <i class="fas fa-percentage me-1"></i>Interest Rate (%)
+                                </label>
+                                <input type="number" class="form-control" id="interest_rate" name="interest_rate" 
+                                       value="{{ debt.InterestRate or '' }}" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="added_date" class="form-label">
+                                    <i class="fas fa-calendar-plus me-1"></i>Added Date
+                                </label>
+                                <input type="text" class="form-control" id="added_date" name="added_date" 
+                                       value="{{ debt.AddedDate or '' }}" readonly>
+                                <div class="form-text">Date when debt was first added</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">
+                            <i class="fas fa-sticky-note me-1"></i>Notes
+                        </label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                  placeholder="Additional information about this debt">{{ debt.Notes or '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-custom">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                        <a href="{{ url_for('debt') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <button type="button" class="btn btn-danger ms-auto" onclick="confirmDelete()">
+                            <i class="fas fa-trash me-1"></i>Delete Debt
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Debt Statistics -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Debt Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                {% set total_paid = debt.OriginalDebt - debt.Amount %}
+                {% set progress = (total_paid / debt.OriginalDebt * 100) if debt.OriginalDebt > 0 else 0 %}
+                
+                <div class="row mb-2">
+                    <div class="col-6"><strong>Total Paid:</strong></div>
+                    <div class="col-6 text-end">{{ format_euro(total_paid) }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-6"><strong>Remaining:</strong></div>
+                    <div class="col-6 text-end">{{ format_euro(debt.Amount) }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6"><strong>Progress:</strong></div>
+                    <div class="col-6 text-end">{{ "%.1f"|format(progress) }}%</div>
+                </div>
+                
+                <div class="progress mb-2" style="height: 25px;">
+                    <div class="progress-bar 
+                        {% if progress < 25 %}bg-danger
+                        {% elif progress < 75 %}bg-warning
+                        {% else %}bg-success{% endif %}" 
+                        role="progressbar" 
+                        style="width: {{ progress }}%">
+                        {{ "%.1f"|format(progress) }}%
+                    </div>
+                </div>
+                
+                {% if debt.DueDate %}
+                {% set due_date = debt.DueDate|strptime('%Y-%m-%d') %}
+                {% set days_until = (due_date - datetime.now().date()).days %}
+                <div class="alert alert-sm {% if days_until < 0 %}alert-danger{% elif days_until <= 30 %}alert-warning{% else %}alert-info{% endif %}">
+                    {% if days_until < 0 %}
+                    <i class="fas fa-exclamation-triangle me-1"></i>{{ days_until|abs }} days overdue
+                    {% elif days_until <= 30 %}
+                    <i class="fas fa-clock me-1"></i>{{ days_until }} days until due
+                    {% else %}
+                    <i class="fas fa-calendar me-1"></i>Due in {{ days_until }} days
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Quick Payment -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-money-bill me-2"></i>Quick Payment
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_debt', debt_name=debt.DebtName) }}">
+                    <div class="mb-3">
+                        <label for="quick_payment" class="form-label">Payment Amount (€)</label>
+                        <input type="number" class="form-control" id="quick_payment" name="payment_amount" 
+                               step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quick_payment_method" class="form-label">Payment Method</label>
+                        <select class="form-select" id="quick_payment_method" name="payment_method">
+                            <option value="">Select method</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Check">Check</option>
+                            <option value="Online Payment">Online Payment</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quick_payment_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="quick_payment_notes" name="payment_notes" rows="2" 
+                                  placeholder="Optional payment notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-custom w-100">
+                        <i class="fas fa-money-bill me-1"></i>Record Payment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone!
+                </div>
+                <p>Are you sure you want to delete this debt and all its payment history?</p>
+                <p><strong>Debt:</strong> {{ debt.DebtName }}</p>
+                <p><strong>Current Amount:</strong> {{ format_euro(debt.Amount) }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_debt', debt_name=debt.DebtName) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete Permanently
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete() {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// Form validation
+document.getElementById('editDebtForm').addEventListener('submit', function(e) {
+    const currentAmount = parseFloat(document.getElementById('current_amount').value.replace(',', '.'));
+    const originalAmount = parseFloat(document.getElementById('original_amount').value.replace(',', '.'));
+    
+    if (currentAmount < 0) {
+        e.preventDefault();
+        alert('Current amount cannot be negative');
+        return false;
+    }
+    
+    if (originalAmount < 0) {
+        e.preventDefault();
+        alert('Original amount cannot be negative');
+        return false;
+    }
+    
+    if (currentAmount > originalAmount) {
+        if (!confirm('Current amount is higher than original amount. This is unusual but allowed. Continue?')) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+
+// Update progress bar in real-time
+document.getElementById('current_amount').addEventListener('input', updateProgress);
+document.getElementById('original_amount').addEventListener('input', updateProgress);
+
+function updateProgress() {
+    const currentAmount = parseFloat(document.getElementById('current_amount').value.replace(',', '.')) || 0;
+    const originalAmount = parseFloat(document.getElementById('original_amount').value.replace(',', '.')) || 0;
+    
+    if (originalAmount > 0) {
+        const totalPaid = originalAmount - currentAmount;
+        const progress = (totalPaid / originalAmount * 100);
+        const progressBar = document.querySelector('.progress-bar');
+        
+        progressBar.style.width = Math.max(0, Math.min(100, progress)) + '%';
+        progressBar.textContent = progress.toFixed(1) + '%';
+        
+        // Update color
+        progressBar.className = 'progress-bar ' + 
+            (progress < 25 ? 'bg-danger' : 
+             progress < 75 ? 'bg-warning' : 'bg-success');
+    }
+}
+</script>
+{% endblock %}

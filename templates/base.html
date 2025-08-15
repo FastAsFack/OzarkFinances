@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#211a1a">
+    <title>{% block title %}Ozark Finances{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #2b2b2b;
+            --control-dark: #211a1a;
+            --text-light: #ffffff;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'JetBrains Mono', monospace;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Allow text selection in specific areas */
+        .user-select-text,
+        .form-control,
+        .form-select,
+        .table td,
+        .table th {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        
+        /* Ensure buttons and links can be clicked */
+        .btn,
+        button,
+        a[href] {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        
+        .navbar {
+            background-color: var(--control-dark) !important;
+        }
+        
+        .card {
+            background-color: var(--control-dark);
+            border: 1px solid #444;
+        }
+        
+        .table-dark {
+            --bs-table-bg: var(--control-dark);
+        }
+        
+        .btn-custom {
+            background-color: var(--control-dark);
+            border-color: #555;
+            color: var(--text-light);
+        }
+        
+        .btn-custom:hover {
+            background-color: #3a3a3a;
+            border-color: #666;
+            color: var(--text-light);
+        }
+        
+        .form-control {
+            background-color: var(--control-dark);
+            border-color: #555;
+            color: var(--text-light);
+        }
+        
+        .form-control:focus {
+            background-color: var(--control-dark);
+            border-color: #777;
+            color: var(--text-light);
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        }
+        
+        .form-select {
+            background-color: var(--control-dark);
+            border-color: #555;
+            color: var(--text-light);
+        }
+        
+        .form-select:focus {
+            background-color: var(--control-dark);
+            border-color: #777;
+            color: var(--text-light);
+        }
+        
+        .alert {
+            border: none;
+        }
+        
+        .totals-card {
+            background: linear-gradient(135deg, var(--control-dark), #2a2a2a);
+        }
+        
+        /* Mobile detection and adaptive styles */
+        @media (max-width: 768px) {
+            .hide-on-mobile {
+                display: none !important;
+            }
+            
+            .show-on-mobile {
+                display: block !important;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .show-on-mobile {
+                display: none !important;
+            }
+        }
+        
+        /* Info Button Styles */
+        .info-btn {
+            background-color: rgba(0, 123, 255, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.3);
+            color: #007bff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 5px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .info-btn:hover {
+            background-color: rgba(0, 123, 255, 0.2);
+            border-color: rgba(0, 123, 255, 0.5);
+            color: #0056b3;
+            transform: scale(1.1);
+        }
+        
+        .info-btn i {
+            font-size: 10px;
+        }
+        
+        .info-modal .modal-header {
+            background-color: #007bff;
+            color: white;
+            border-bottom: none;
+        }
+        
+        .info-modal .modal-content {
+            background-color: var(--control-dark);
+            border: 1px solid #007bff;
+        }
+        
+        .info-modal .modal-body {
+            color: var(--text-light);
+        }
+        
+        .info-modal .btn-close {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Desktop Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark hide-on-mobile">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-chart-line me-2"></i>Ozark Finances
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('invoices') }}">
+                            <i class="fas fa-receipt me-1"></i>Invoices
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('withdraws') }}">
+                            <i class="fas fa-money-bill-wave me-1"></i>Withdraws
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('important_info') }}">
+                            <i class="fas fa-exclamation-circle me-1"></i>Important Info
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('debt') }}">
+                            <i class="fas fa-credit-card me-1"></i>Debt
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('settings') }}">
+                            <i class="fas fa-cog me-1"></i>Settings
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-vials me-1"></i>Demos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('message_demo') }}">
+                                <i class="fas fa-comment me-1"></i>Message Demo
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('demo_invoices_layout') }}">
+                                <i class="fas fa-palette me-1"></i>Layout Demo
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('invoices_bin') }}">
+                                <i class="fas fa-trash-alt me-1"></i>Bin (Legacy)
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark show-on-mobile">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-chart-line me-2"></i>Ozark
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mobileNavbarNav">
+                <ul class="navbar-nav w-100">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-2"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('invoices') }}">
+                            <i class="fas fa-receipt me-2"></i>Invoices
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('withdraws') }}">
+                            <i class="fas fa-money-bill-wave me-2"></i>Withdraws
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('important_info') }}">
+                            <i class="fas fa-exclamation-circle me-2"></i>Important Info
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('debt') }}">
+                            <i class="fas fa-credit-card me-2"></i>Debt
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('settings') }}">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-vials me-2"></i>Demos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('message_demo') }}">
+                                <i class="fas fa-comment me-1"></i>Message Demo
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('demo_invoices_layout') }}">
+                                <i class="fas fa-palette me-1"></i>Layout Demo
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('invoices_bin') }}">
+                                <i class="fas fa-trash-alt me-1"></i>Bin (Legacy)
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4 {% block main_class %}{% endblock %}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% set alert_class = {
+                        'error': 'danger',
+                        'success': 'success', 
+                        'warning': 'warning',
+                        'info': 'info',
+                        'primary': 'primary',
+                        'secondary': 'secondary'
+                    } %}
+                    {% set icon_class = {
+                        'error': 'fas fa-exclamation-triangle',
+                        'success': 'fas fa-check-circle',
+                        'warning': 'fas fa-exclamation-circle',
+                        'info': 'fas fa-info-circle',
+                        'primary': 'fas fa-star',
+                        'secondary': 'fas fa-bell'
+                    } %}
+                    <div class="alert alert-{{ alert_class.get(category, 'primary') }} alert-dismissible fade show d-flex align-items-center" role="alert">
+                        <i class="{{ icon_class.get(category, 'fas fa-info-circle') }} me-2"></i>
+                        <div class="flex-grow-1">{{ message }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Info Modal -->
+    <div class="modal fade info-modal" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="infoModalLabel">
+                        <i class="fas fa-info-circle me-2"></i>Information
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="infoModalBody">
+                    <!-- Content will be dynamically inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Mobile Enhancement JavaScript -->
+    <script>
+        // Mobile detection and enhancement
+        const isMobile = window.innerWidth <= 768;
+        
+        // Initialize mobile features
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isMobile) {
+                initMobileFeatures();
+            }
+            
+            // Touch event handling for better mobile experience
+            handleTouchEvents();
+            
+            // Auto-collapse mobile navbar after navigation
+            setupMobileNavCollapse();
+            
+            // Pull-to-refresh functionality
+            setupPullToRefresh();
+            
+            // Swipe gestures for table rows
+            setupSwipeGestures();
+        });
+        
+        function initMobileFeatures() {
+            // Convert tables to mobile card view
+            convertTablesToMobileCards();
+            
+            // Setup mobile search
+            setupMobileSearch();
+            
+            // Setup collapsible filters
+            setupCollapsibleFilters();
+        }
+        
+        function handleTouchEvents() {
+            // Touch event handling disabled temporarily to fix button issues
+            // TODO: Re-implement mobile-specific touch handling if needed
+            
+            /*
+            // Prevent double-tap zoom on buttons (but only when needed)
+            document.addEventListener('touchstart', function(e) {
+                if (e.target.closest('.btn, .nav-link, .mobile-bottom-nav-item')) {
+                    // Only prevent default on mobile devices to avoid double-tap zoom
+                    // Don't prevent default on desktop as it breaks mouse events
+                    if ('ontouchstart' in window && window.innerWidth <= 768) {
+                        e.preventDefault();
+                        e.target.click();
+                    }
+                }
+            });
+            */
+            
+            // Handle long press for context menus
+            let pressTimer;
+            document.addEventListener('touchstart', function(e) {
+                if (e.target.closest('.mobile-invoice-card, .mobile-withdraw-card, .mobile-debt-card')) {
+                    pressTimer = setTimeout(() => {
+                        showMobileContextMenu(e.target.closest('.mobile-invoice-card, .mobile-withdraw-card, .mobile-debt-card'));
+                    }, 500);
+                }
+            });
+            
+            document.addEventListener('touchend', function() {
+                clearTimeout(pressTimer);
+            });
+            
+            document.addEventListener('touchmove', function() {
+                clearTimeout(pressTimer);
+            });
+        }
+        
+        function setupMobileNavCollapse() {
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            const navbarCollapse = document.querySelector('.navbar-collapse');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (isMobile && navbarCollapse.classList.contains('show')) {
+                        navbarToggler.click();
+                    }
+                });
+            });
+        }
+        
+        function setupPullToRefresh() {
+            let startY = 0;
+            let currentY = 0;
+            let isRefreshing = false;
+            
+            document.addEventListener('touchstart', function(e) {
+                startY = e.touches[0].pageY;
+            });
+            
+            document.addEventListener('touchmove', function(e) {
+                currentY = e.touches[0].pageY;
+                
+                if (currentY > startY + 50 && window.pageYOffset === 0 && !isRefreshing) {
+                    isRefreshing = true;
+                    showMobileToast('Refreshing...', 'info');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            });
+        }
+        
+        function setupSwipeGestures() {
+            let startX = 0;
+            let startY = 0;
+            let threshold = 50;
+            
+            document.addEventListener('touchstart', function(e) {
+                startX = e.touches[0].pageX;
+                startY = e.touches[0].pageY;
+            });
+            
+            document.addEventListener('touchend', function(e) {
+                if (!startX || !startY) return;
+                
+                let endX = e.changedTouches[0].pageX;
+                let endY = e.changedTouches[0].pageY;
+                
+                let diffX = startX - endX;
+                let diffY = startY - endY;
+                
+                // Only process horizontal swipes
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+                    const target = e.target.closest('.mobile-invoice-card, .mobile-withdraw-card, .mobile-debt-card');
+                    if (target) {
+                        if (diffX > 0) {
+                            // Swipe left - show delete option
+                            showSwipeAction(target, 'delete', 'left');
+                        } else {
+                            // Swipe right - show edit option
+                            showSwipeAction(target, 'edit', 'right');
+                        }
+                    }
+                }
+                
+                startX = 0;
+                startY = 0;
+            });
+        }
+        
+        function showSwipeAction(target, action, direction) {
+            const indicator = document.createElement('div');
+            indicator.className = `swipe-indicator ${direction} show`;
+            indicator.innerHTML = action === 'delete' ? 
+                '<i class="fas fa-trash"></i> Delete' : 
+                '<i class="fas fa-edit"></i> Edit';
+            
+            target.style.position = 'relative';
+            target.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.remove();
+            }, 1500);
+        }
+        
+        function convertTablesToMobileCards() {
+            const tables = document.querySelectorAll('.table-responsive table');
+            
+            tables.forEach(table => {
+                if (isMobile) {
+                    const container = table.closest('.table-responsive');
+                    if (container && !container.querySelector('.mobile-card-view')) {
+                        createMobileCardView(table, container);
+                    }
+                }
+            });
+        }
+        
+        function createMobileCardView(table, container) {
+            const rows = table.querySelectorAll('tbody tr');
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            
+            const mobileView = document.createElement('div');
+            mobileView.className = 'mobile-card-view d-block d-md-none';
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const card = document.createElement('div');
+                
+                // Determine card type based on page
+                let cardClass = 'mobile-invoice-card';
+                if (window.location.pathname.includes('withdraw')) {
+                    cardClass = 'mobile-withdraw-card';
+                } else if (window.location.pathname.includes('debt')) {
+                    cardClass = 'mobile-debt-card';
+                }
+                
+                card.className = cardClass;
+                card.innerHTML = createMobileCardHTML(headers, cells);
+                mobileView.appendChild(card);
+            });
+            
+            // Hide desktop table on mobile
+            table.parentElement.classList.add('d-none', 'd-md-block');
+            table.parentElement.classList.remove('table-responsive');
+            
+            container.appendChild(mobileView);
+        }
+        
+        function createMobileCardHTML(headers, cells) {
+            // This is a generic template - would be customized per page type
+            let html = '<div class="mobile-card-header">';
+            html += `<div class="mobile-card-title">${cells[0]?.textContent || 'Item'}</div>`;
+            html += `<div class="mobile-card-badge badge bg-primary">${cells[1]?.textContent || ''}</div>`;
+            html += '</div>';
+            
+            html += '<div class="mobile-card-details">';
+            for (let i = 2; i < Math.min(cells.length - 1, 6); i++) {
+                if (cells[i] && headers[i]) {
+                    html += '<div class="mobile-card-detail">';
+                    html += `<div class="mobile-card-label">${headers[i]}</div>`;
+                    html += `<div class="mobile-card-value">${cells[i].textContent}</div>`;
+                    html += '</div>';
+                }
+            }
+            html += '</div>';
+            
+            // Actions from last cell
+            const actionsCell = cells[cells.length - 1];
+            if (actionsCell) {
+                html += '<div class="mobile-card-actions">';
+                const buttons = actionsCell.querySelectorAll('.btn');
+                buttons.forEach(btn => {
+                    html += btn.outerHTML;
+                });
+                html += '</div>';
+            }
+            
+            return html;
+        }
+        
+        function setupMobileSearch() {
+            const searchInputs = document.querySelectorAll('#invoiceSearch, #withdrawSearch');
+            
+            searchInputs.forEach(input => {
+                if (input && isMobile) {
+                    const container = document.createElement('div');
+                    container.className = 'mobile-search-container';
+                    
+                    const mobileInput = input.cloneNode(true);
+                    mobileInput.className = 'mobile-search-input';
+                    mobileInput.placeholder = 'Search...';
+                    
+                    container.appendChild(mobileInput);
+                    input.closest('.card').appendChild(container);
+                    
+                    // Sync search functionality
+                    mobileInput.addEventListener('input', function() {
+                        input.value = this.value;
+                        input.dispatchEvent(new Event('input'));
+                    });
+                }
+            });
+        }
+        
+        function setupCollapsibleFilters() {
+            const filterCards = document.querySelectorAll('.filter-card, .card:has(.filter-section)');
+            
+            filterCards.forEach(card => {
+                if (isMobile) {
+                    const header = card.querySelector('.card-header');
+                    const body = card.querySelector('.card-body');
+                    
+                    if (header && body) {
+                        header.style.cursor = 'pointer';
+                        header.innerHTML += ' <i class="fas fa-chevron-down float-end filter-toggle-icon"></i>';
+                        
+                        header.addEventListener('click', () => {
+                            card.classList.toggle('expanded');
+                            const icon = header.querySelector('.filter-toggle-icon');
+                            icon.classList.toggle('fa-chevron-down');
+                            icon.classList.toggle('fa-chevron-up');
+                        });
+                    }
+                }
+            });
+        }
+        
+        function showMobileContextMenu(target) {
+            // Implementation for context menu on long press
+            const menu = document.createElement('div');
+            menu.className = 'mobile-context-menu';
+            menu.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: var(--control-dark);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 1rem;
+                z-index: 1060;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            
+            menu.innerHTML = `
+                <div class="d-flex flex-column gap-2">
+                    <button class="btn btn-sm btn-outline-primary">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="this.closest('.mobile-context-menu').remove()">Cancel</button>
+                </div>
+            `;
+            
+            document.body.appendChild(menu);
+            
+            // Remove menu after 3 seconds
+            setTimeout(() => {
+                if (menu.parentNode) {
+                    menu.remove();
+                }
+            }, 3000);
+        }
+        
+        function showMobileToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `mobile-toast alert alert-${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        // Utility functions for mobile-specific features
+        function addMobileFAB(icon, action, page) {
+            if (!isMobile) return;
+            
+            const fab = document.createElement('button');
+            fab.className = 'mobile-fab';
+            fab.innerHTML = `<i class="fas fa-${icon}"></i>`;
+            fab.onclick = action;
+            
+            document.body.appendChild(fab);
+        }
+        
+        // Orientation change handler
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+        });
+        
+        // Prevent iOS zoom on form inputs
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.matches('input, select, textarea')) {
+                document.querySelector('meta[name=viewport]').setAttribute('content', 
+                    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+            }
+        });
+        
+        document.addEventListener('touchend', function(e) {
+            if (e.target.matches('input, select, textarea')) {
+                document.querySelector('meta[name=viewport]').setAttribute('content', 
+                    'width=device-width, initial-scale=1.0, user-scalable=no');
+            }
+        });
+    </script>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11">
+        <!-- Toasts will be dynamically added here -->
+    </div>
+
+    <!-- Custom Message Box Modal -->
+    <div class="modal fade" id="customMessageModal" tabindex="-1" aria-labelledby="customMessageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" id="messageModalHeader">
+                    <h5 class="modal-title" id="customMessageModalLabel">
+                        <i id="messageModalIcon" class="me-2"></i>
+                        <span id="messageModalTitle">Message</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="messageModalBody">
+                    Message content goes here
+                </div>
+                <div class="modal-footer" id="messageModalFooter">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Message System
+        class MessageBox {
+            // Show a toast notification
+            static showToast(message, type = 'info', duration = 5000) {
+                const toastContainer = document.querySelector('.toast-container');
+                
+                const toastTypes = {
+                    success: { bgClass: 'bg-success', icon: 'fas fa-check-circle', textClass: 'text-white' },
+                    error: { bgClass: 'bg-danger', icon: 'fas fa-exclamation-triangle', textClass: 'text-white' },
+                    warning: { bgClass: 'bg-warning', icon: 'fas fa-exclamation-circle', textClass: 'text-dark' },
+                    info: { bgClass: 'bg-info', icon: 'fas fa-info-circle', textClass: 'text-white' },
+                    primary: { bgClass: 'bg-primary', icon: 'fas fa-star', textClass: 'text-white' }
+                };
+                
+                const config = toastTypes[type] || toastTypes.info;
+                
+                const toastEl = document.createElement('div');
+                toastEl.className = `toast ${config.bgClass} ${config.textClass}`;
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+                toastEl.setAttribute('data-bs-delay', duration);
+                
+                toastEl.innerHTML = `
+                    <div class="toast-header ${config.bgClass} ${config.textClass} border-0">
+                        <i class="${config.icon} me-2"></i>
+                        <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                        <button type="button" class="btn-close btn-close-${config.textClass === 'text-white' ? 'white' : ''}" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toastEl);
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+                
+                // Remove element after it's hidden
+                toastEl.addEventListener('hidden.bs.toast', () => {
+                    toastEl.remove();
+                });
+            }
+            
+            // Show a custom modal dialog
+            static showModal(title, message, type = 'info', buttons = null) {
+                const modal = document.getElementById('customMessageModal');
+                const modalTitle = document.getElementById('messageModalTitle');
+                const modalIcon = document.getElementById('messageModalIcon');
+                const modalBody = document.getElementById('messageModalBody');
+                const modalHeader = document.getElementById('messageModalHeader');
+                const modalFooter = document.getElementById('messageModalFooter');
+                
+                const modalTypes = {
+                    success: { headerClass: 'bg-success text-white', icon: 'fas fa-check-circle text-white' },
+                    error: { headerClass: 'bg-danger text-white', icon: 'fas fa-exclamation-triangle text-white' },
+                    warning: { headerClass: 'bg-warning text-dark', icon: 'fas fa-exclamation-circle text-dark' },
+                    info: { headerClass: 'bg-info text-white', icon: 'fas fa-info-circle text-white' },
+                    question: { headerClass: 'bg-primary text-white', icon: 'fas fa-question-circle text-white' }
+                };
+                
+                const config = modalTypes[type] || modalTypes.info;
+                
+                // Set header style and icon
+                modalHeader.className = `modal-header ${config.headerClass}`;
+                modalIcon.className = config.icon;
+                modalTitle.textContent = title;
+                modalBody.innerHTML = message;
+                
+                // Set up buttons
+                if (buttons) {
+                    modalFooter.innerHTML = buttons;
+                } else {
+                    modalFooter.innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>';
+                }
+                
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+                
+                return bsModal;
+            }
+            
+            // Show a confirmation dialog
+            static showConfirmation(title, message, onConfirm, onCancel = null) {
+                const confirmId = 'confirmBtn_' + Date.now();
+                const cancelId = 'cancelBtn_' + Date.now();
+                
+                const buttons = `
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="${cancelId}">Cancel</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="${confirmId}">Confirm</button>
+                `;
+                
+                const modal = MessageBox.showModal(title, message, 'question', buttons);
+                
+                // Wait for modal to be shown, then add event listeners
+                const modalElement = document.getElementById('customMessageModal');
+                modalElement.addEventListener('shown.bs.modal', function() {
+                    // Add event listener to confirm button
+                    const confirmBtn = document.getElementById(confirmId);
+                    const cancelBtn = document.getElementById(cancelId);
+                    
+                    if (confirmBtn) {
+                        confirmBtn.addEventListener('click', () => {
+                            if (typeof onConfirm === 'function') {
+                                onConfirm();
+                            }
+                        });
+                    }
+                    
+                    if (cancelBtn && typeof onCancel === 'function') {
+                        cancelBtn.addEventListener('click', () => {
+                            onCancel();
+                        });
+                    }
+                }, { once: true }); // Remove listener after first use
+                
+                return modal;
+            }
+            
+            // Show a prompt dialog (input)
+            static showPrompt(title, message, defaultValue = '', onConfirm = null) {
+                const promptId = 'promptInput_' + Date.now();
+                const confirmBtnId = 'promptConfirmBtn_' + Date.now();
+                const cancelBtnId = 'promptCancelBtn_' + Date.now();
+                
+                const promptMessage = `
+                    <p>${message}</p>
+                    <input type="text" class="form-control" id="${promptId}" value="${defaultValue}" placeholder="Enter value...">
+                `;
+                
+                const buttons = `
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="${cancelBtnId}">Cancel</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="${confirmBtnId}">OK</button>
+                `;
+                
+                const modal = MessageBox.showModal(title, promptMessage, 'info', buttons);
+                
+                // Wait for modal to be shown, then set up interactions
+                const modalElement = document.getElementById('customMessageModal');
+                modalElement.addEventListener('shown.bs.modal', function() {
+                    const promptInput = document.getElementById(promptId);
+                    const confirmBtn = document.getElementById(confirmBtnId);
+                    
+                    // Focus the input
+                    if (promptInput) {
+                        promptInput.focus();
+                        promptInput.select(); // Select all text for easy replacement
+                        
+                        // Allow Enter key to confirm
+                        promptInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                const value = promptInput.value;
+                                if (typeof onConfirm === 'function') {
+                                    onConfirm(value);
+                                }
+                                modal.hide();
+                            }
+                        });
+                    }
+                    
+                    // Add event listener to confirm button
+                    if (confirmBtn) {
+                        confirmBtn.addEventListener('click', () => {
+                            const value = promptInput ? promptInput.value : '';
+                            if (typeof onConfirm === 'function') {
+                                onConfirm(value);
+                            }
+                        });
+                    }
+                }, { once: true }); // Remove listener after first use
+                
+                return modal;
+            }
+        }
+        
+        // Global functions for easy access
+        window.showToast = MessageBox.showToast;
+        window.showModal = MessageBox.showModal;
+        window.showConfirmation = MessageBox.showConfirmation;
+        window.showPrompt = MessageBox.showPrompt;
+        
+        // Additional global functions with shorter names for easier use
+        window.showConfirm = MessageBox.showConfirmation;
+        window.toast = MessageBox.showToast;
+        
+        // Debug function to check if MessageBox is working
+        window.debugMessageBox = function() {
+            console.log('MessageBox class:', MessageBox);
+            console.log('showConfirmation function:', MessageBox.showConfirmation);
+            console.log('showModal function:', MessageBox.showModal);
+            console.log('Bootstrap Modal available:', typeof bootstrap?.Modal);
+            
+            // Test the modal element
+            const modalElement = document.getElementById('customMessageModal');
+            console.log('Modal element found:', !!modalElement);
+            
+            if (modalElement) {
+                console.log('Modal element:', modalElement);
+            }
+        };
+        
+        // Replace all alert() calls with toast notifications
+        const originalAlert = window.alert;
+        window.alert = function(message) {
+            MessageBox.showToast(message, 'warning', 6000);
+        };
+        
+        // Log successful initialization
+        console.log('MessageBox system initialized successfully');
+        
+        // Wait for DOM to be fully loaded, then run additional checks
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('DOM loaded, running MessageBox checks...');
+                window.debugMessageBox();
+            });
+        } else {
+            console.log('DOM already loaded, running MessageBox checks...');
+            window.debugMessageBox();
+        }
+    </script>
+    
+    <!-- Global Validation System (Feature #2) -->
+    <script>
+        // Info Button System
+        class InfoSystem {
+            constructor() {
+                this.infoContent = {
+                    // Dashboard
+                    'dashboard-overview': {
+                        title: 'Dashboard Overview',
+                        content: 'This dashboard provides a quick overview of your financial status including current debts, recent activity, and key metrics.'
+                    },
+                    'current-debts': {
+                        title: 'Current Debts',
+                        content: 'View and manage all your active debts. You can add payments, view payment history, and track progress for each debt.'
+                    },
+                    'debt-actions': {
+                        title: 'Debt Actions',
+                        content: 'Use these buttons to:<br>• <strong>Add Payment:</strong> Record a payment for this debt<br>• <strong>View History:</strong> See all payments made<br>• <strong>Delete:</strong> Remove this debt (requires confirmation)'
+                    },
+                    
+                    // Invoices
+                    'invoice-management': {
+                        title: 'Invoice Management',
+                        content: 'Manage all your invoices here. You can create new invoices, search through existing ones, and access the invoice bin for deleted items.'
+                    },
+                    'invoice-search': {
+                        title: 'Search Invoices',
+                        content: 'Search through your invoices by invoice number, client name, or description. The search is case-insensitive and searches across all relevant fields.'
+                    },
+                    'invoice-bin': {
+                        title: 'Invoice Bin',
+                        content: 'Deleted invoices are moved to the bin where they can be restored or permanently deleted. Items in the bin don\'t count towards your totals.'
+                    },
+                    'bulk-operations': {
+                        title: 'Bulk Operations',
+                        content: 'Select multiple invoices using the checkboxes to perform bulk actions like moving to bin or restoring multiple items at once.'
+                    },
+                    
+                    // Forms
+                    'form-validation': {
+                        title: 'Form Validation',
+                        content: 'All forms include real-time validation. Required fields are marked with <span style="color: #dc3545;">*</span> and will show error messages if invalid. Make sure to fill all required fields before submitting.'
+                    },
+                    'amount-formatting': {
+                        title: 'Amount Formatting',
+                        content: 'Enter amounts using either decimal point (.) or comma (,). The system will automatically format them correctly. Example: "123,45" becomes "123.45". Always use 2 decimal places for currency.'
+                    },
+                    'date-filters': {
+                        title: 'Date Filtering',
+                        content: 'Use the quick presets for common date ranges, or set exact dates and ranges in the advanced section. Combine multiple filters for precise results.'
+                    },
+                    
+                    // Debt Management
+                    'debt-creation': {
+                        title: 'Creating Debts',
+                        content: 'When creating a debt, provide a clear description and the total amount. Set categories and due dates to help organize your debts. You can add payments immediately or add them later from the dashboard.'
+                    },
+                    'payment-tracking': {
+                        title: 'Payment Tracking',
+                        content: 'Each debt maintains a complete payment history. Payments reduce the remaining balance and are tracked with dates, payment methods, and optional notes. View payment history using the history button.'
+                    },
+                    
+                    // Settings
+                    'settings-management': {
+                        title: 'Settings',
+                        content: 'Configure application settings, manage data exports, and access administrative functions. Changes are saved automatically.'
+                    },
+                    
+                    // General
+                    'data-persistence': {
+                        title: 'Data Persistence',
+                        content: 'All your data is stored locally in SQLite databases. Regular backups are recommended to prevent data loss.'
+                    },
+                    'mobile-support': {
+                        title: 'Mobile Support',
+                        content: 'This application is optimized for both desktop and mobile use. On mobile devices, some features may be simplified for better usability.'
+                    }
+                };
+                
+                this.initializeInfoButtons();
+            }
+            
+            initializeInfoButtons() {
+                // Add click handlers to all info buttons
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.info-btn')) {
+                        e.preventDefault();
+                        const infoBtn = e.target.closest('.info-btn');
+                        const infoKey = infoBtn.dataset.info;
+                        this.showInfo(infoKey);
+                    }
+                });
+            }
+            
+            showInfo(infoKey) {
+                const info = this.infoContent[infoKey];
+                if (!info) {
+                    console.warn(`Info content not found for key: ${infoKey}`);
+                    return;
+                }
+                
+                const modal = document.getElementById('infoModal');
+                const title = document.getElementById('infoModalLabel');
+                const body = document.getElementById('infoModalBody');
+                
+                title.innerHTML = `<i class="fas fa-info-circle me-2"></i>${info.title}`;
+                body.innerHTML = info.content;
+                
+                const bootstrapModal = new bootstrap.Modal(modal);
+                bootstrapModal.show();
+            }
+            
+            // Helper function to create info button HTML
+            static createButton(infoKey, customClass = '') {
+                return `<span class="info-btn ${customClass}" data-info="${infoKey}" title="Click for more information"><i class="fas fa-info"></i></span>`;
+            }
+        }
+        
+        // Initialize info system when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            window.InfoSystem = new InfoSystem();
+        });
+        
+        // Global helper function
+        window.createInfoButton = (infoKey, customClass = '') => InfoSystem.createButton(infoKey, customClass);
+    </script>
+    
+    <script>
+        // Global Validation System
+        class ValidationSystem {
+            constructor() {
+                this.validators = {
+                    required: {
+                        test: (value) => value && value.trim() !== '',
+                        message: 'This field is required'
+                    },
+                    email: {
+                        test: (value) => !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+                        message: 'Please enter a valid email address'
+                    },
+                    amount: {
+                        test: (value) => {
+                            if (!value) return true; // Allow empty if not required
+                            // Handle European decimal format (comma as decimal separator)
+                            const cleaned = value.toString().replace(',', '.');
+                            const num = parseFloat(cleaned);
+                            return !isNaN(num) && num >= 0;
+                        },
+                        message: 'Please enter a valid positive amount (use comma or dot for decimals)'
+                    },
+                    number: {
+                        test: (value) => {
+                            if (!value) return true; // Allow empty if not required
+                            const cleaned = value.toString().replace(',', '.');
+                            return !isNaN(parseFloat(cleaned));
+                        },
+                        message: 'Please enter a valid number'
+                    },
+                    date: {
+                        test: (value) => {
+                            if (!value) return true; // Allow empty if not required
+                            const date = new Date(value);
+                            return !isNaN(date.getTime());
+                        },
+                        message: 'Please enter a valid date'
+                    },
+                    minLength: {
+                        test: (value, min) => !value || value.length >= min,
+                        message: (min) => `Must be at least ${min} characters long`
+                    },
+                    maxLength: {
+                        test: (value, max) => !value || value.length <= max,
+                        message: (max) => `Must be no more than ${max} characters long`
+                    },
+                    invoiceNumber: {
+                        test: (value) => {
+                            if (!value) return true;
+                            // Invoice numbers should be numeric and at least 3 digits
+                            return /^\d{3,}$/.test(value.toString());
+                        },
+                        message: 'Invoice number must be at least 3 digits'
+                    },
+                    btw: {
+                        test: (value, excludingAmount) => {
+                            if (!value || !excludingAmount) return true;
+                            const cleaned_value = value.toString().replace(',', '.');
+                            const cleaned_excl = excludingAmount.toString().replace(',', '.');
+                            const btw = parseFloat(cleaned_value);
+                            const excl = parseFloat(cleaned_excl);
+                            if (isNaN(btw) || isNaN(excl)) return true;
+                            const expectedBtw = Math.round(excl * 0.21 * 100) / 100;
+                            // Allow for small rounding differences (±0.01)
+                            return Math.abs(btw - expectedBtw) <= 0.01;
+                        },
+                        message: 'BTW amount should be 21% of the excluding amount'
+                    }
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                // Auto-setup validation for all forms
+                document.addEventListener('DOMContentLoaded', () => {
+                    this.setupAllForms();
+                });
+                
+                // Also setup for forms added after DOM load
+                this.setupAllForms();
+            }
+            
+            setupAllForms() {
+                const forms = document.querySelectorAll('form[data-validate="true"], form.validate');
+                forms.forEach(form => this.setupForm(form));
+            }
+            
+            setupForm(form) {
+                if (form.dataset.validationSetup) return; // Already setup
+                form.dataset.validationSetup = 'true';
+                
+                // Setup real-time validation
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => this.setupField(input));
+                
+                // Setup form submission
+                form.addEventListener('submit', (e) => {
+                    if (!this.validateForm(form)) {
+                        e.preventDefault();
+                        this.showValidationErrors(form);
+                    }
+                });
+            }
+            
+            setupField(field) {
+                // Setup real-time validation on blur
+                field.addEventListener('blur', () => {
+                    this.validateField(field);
+                });
+                
+                // Setup real-time validation on input for certain field types
+                if (field.type === 'text' && field.dataset.validate?.includes('amount')) {
+                    field.addEventListener('input', () => {
+                        clearTimeout(field.validationTimeout);
+                        field.validationTimeout = setTimeout(() => {
+                            this.validateField(field);
+                        }, 500);
+                    });
+                }
+            }
+            
+            validateField(field) {
+                const errors = this.getFieldErrors(field);
+                this.displayFieldErrors(field, errors);
+                return errors.length === 0;
+            }
+            
+            getFieldErrors(field) {
+                const errors = [];
+                const value = field.value;
+                const validationRules = field.dataset.validate?.split(' ') || [];
+                
+                // Check required
+                if (field.hasAttribute('required') || validationRules.includes('required')) {
+                    if (!this.validators.required.test(value)) {
+                        errors.push(this.validators.required.message);
+                    }
+                }
+                
+                // Skip other validations if field is empty and not required
+                if (!value && !field.hasAttribute('required') && !validationRules.includes('required')) {
+                    return errors;
+                }
+                
+                // Check other validation rules
+                validationRules.forEach(rule => {
+                    if (rule === 'required') return; // Already checked
+                    
+                    if (this.validators[rule]) {
+                        const validator = this.validators[rule];
+                        if (!validator.test(value)) {
+                            errors.push(validator.message);
+                        }
+                    } else if (rule.includes(':')) {
+                        // Handle parameterized validators
+                        const [ruleName, param] = rule.split(':');
+                        if (this.validators[ruleName]) {
+                            const validator = this.validators[ruleName];
+                            if (!validator.test(value, param)) {
+                                const message = typeof validator.message === 'function' 
+                                    ? validator.message(param) 
+                                    : validator.message;
+                                errors.push(message);
+                            }
+                        }
+                    }
+                });
+                
+                // Special case: BTW validation
+                if (field.name === 'amount_btw' || field.id === 'amount_btw') {
+                    const exclField = document.querySelector('[name="amount_excl"], #amount_excl');
+                    if (exclField && exclField.value) {
+                        if (!this.validators.btw.test(value, exclField.value)) {
+                            errors.push(this.validators.btw.message);
+                        }
+                    }
+                }
+                
+                return errors;
+            }
+            
+            displayFieldErrors(field, errors) {
+                // Remove existing validation classes
+                field.classList.remove('is-invalid', 'is-valid');
+                
+                // Remove existing error messages
+                const existingError = field.parentNode.querySelector('.invalid-feedback');
+                if (existingError) {
+                    existingError.remove();
+                }
+                
+                if (errors.length > 0) {
+                    // Add error styling
+                    field.classList.add('is-invalid');
+                    
+                    // Add error message
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback';
+                    errorDiv.innerHTML = errors.map(error => `<i class="fas fa-exclamation-triangle me-1"></i>${error}`).join('<br>');
+                    field.parentNode.appendChild(errorDiv);
+                } else if (field.value) {
+                    // Add success styling if field has value and no errors
+                    field.classList.add('is-valid');
+                }
+            }
+            
+            validateForm(form) {
+                const inputs = form.querySelectorAll('input, select, textarea');
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    if (!this.validateField(input)) {
+                        isValid = false;
+                    }
+                });
+                
+                return isValid;
+            }
+            
+            showValidationErrors(form) {
+                const errors = [];
+                const inputs = form.querySelectorAll('input.is-invalid, select.is-invalid, textarea.is-invalid');
+                
+                inputs.forEach(input => {
+                    const fieldName = this.getFieldLabel(input);
+                    const fieldErrors = this.getFieldErrors(input);
+                    if (fieldErrors.length > 0) {
+                        errors.push(`<strong>${fieldName}:</strong> ${fieldErrors[0]}`);
+                    }
+                });
+                
+                if (errors.length > 0) {
+                    window.showModal(
+                        'Validation Errors',
+                        `<div class="alert alert-danger">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:</h6>
+                            <ul class="mb-0">
+                                ${errors.map(error => `<li>${error}</li>`).join('')}
+                            </ul>
+                        </div>`,
+                        'error',
+                        [{
+                            text: 'OK',
+                            class: 'btn-primary',
+                            handler: () => {
+                                // Focus first invalid field
+                                const firstInvalid = form.querySelector('.is-invalid');
+                                if (firstInvalid) {
+                                    firstInvalid.focus();
+                                }
+                            }
+                        }]
+                    );
+                }
+            }
+            
+            getFieldLabel(field) {
+                // Try to find label
+                const label = document.querySelector(`label[for="${field.id}"]`);
+                if (label) {
+                    return label.textContent.replace('*', '').trim();
+                }
+                
+                // Fallback to field name or id
+                return field.name || field.id || 'Field';
+            }
+            
+            // Utility function to clean European number format
+            cleanAmount(value) {
+                if (!value) return 0;
+                return parseFloat(value.toString().replace(',', '.')) || 0;
+            }
+            
+            // Auto-format amount fields
+            formatAmountField(field) {
+                const value = this.cleanAmount(field.value);
+                if (!isNaN(value)) {
+                    field.value = value.toFixed(2);
+                }
+            }
+        }
+        
+        // Initialize global validation system
+        window.ValidationSystem = ValidationSystem;
+        window.validator = new ValidationSystem();
+        
+        // Global helper functions
+        window.validateForm = (form) => window.validator.validateForm(form);
+        window.validateField = (field) => window.validator.validateField(field);
+        window.cleanAmount = (value) => window.validator.cleanAmount(value);
+        window.formatAmount = (field) => window.validator.formatAmountField(field);
+        
+        console.log('Global Validation System initialized');
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

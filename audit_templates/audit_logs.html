@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-list me-2"></i>Audit Logs</h1>
+    <div>
+        <a href="/export?{{ request.query_string.decode() }}" class="btn btn-outline-success">
+            <i class="fas fa-download me-1"></i>
+            Export Filtered
+        </a>
+        <button class="btn btn-outline-primary" onclick="location.reload()">
+            <i class="fas fa-sync-alt me-1"></i>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="filter-section">
+    <form method="GET" class="row g-3">
+        <div class="col-md-2">
+            <label for="table" class="form-label">Table</label>
+            <select class="form-select" id="table" name="table">
+                <option value="">All Tables</option>
+                {% for table in tables %}
+                    <option value="{{ table }}" {{ 'selected' if current_filters.table == table }}>
+                        {{ table }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label for="action" class="form-label">Action</label>
+            <select class="form-select" id="action" name="action">
+                <option value="">All Actions</option>
+                {% for action in actions %}
+                    <option value="{{ action }}" {{ 'selected' if current_filters.action == action }}>
+                        {{ action }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label for="record_id" class="form-label">Record ID</label>
+            <input type="text" class="form-control" id="record_id" name="record_id" 
+                   value="{{ current_filters.record_id or '' }}" placeholder="Any ID">
+        </div>
+        
+        <div class="col-md-2">
+            <label for="date_from" class="form-label">From Date</label>
+            <input type="date" class="form-control" id="date_from" name="date_from" 
+                   value="{{ current_filters.date_from or '' }}">
+        </div>
+        
+        <div class="col-md-2">
+            <label for="date_to" class="form-label">To Date</label>
+            <input type="date" class="form-control" id="date_to" name="date_to" 
+                   value="{{ current_filters.date_to or '' }}">
+        </div>
+        
+        <div class="col-md-2 d-flex align-items-end">
+            <div class="btn-group w-100">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-1"></i>
+                    Filter
+                </button>
+                <a href="/logs" class="btn btn-outline-secondary">
+                    Clear
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Results -->
+{% if logs %}
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list-ul me-2"></i>
+                    Audit Logs 
+                    {% if current_filters.table or current_filters.action or current_filters.record_id %}
+                        (Filtered)
+                    {% endif %}
+                </h5>
+                <div>
+                    <select class="form-select form-select-sm d-inline-block w-auto" onchange="changePerPage(this.value)">
+                        <option value="25" {{ 'selected' if current_filters.per_page == 25 }}>25 per page</option>
+                        <option value="50" {{ 'selected' if current_filters.per_page == 50 else 'selected' if not current_filters.per_page }}>50 per page</option>
+                        <option value="100" {{ 'selected' if current_filters.per_page == 100 }}>100 per page</option>
+                        <option value="200" {{ 'selected' if current_filters.per_page == 200 }}>200 per page</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 140px;">Timestamp</th>
+                            <th style="width: 80px;">Action</th>
+                            <th style="width: 120px;">Table</th>
+                            <th style="width: 100px;">Record ID</th>
+                            <th style="width: 200px;">Changes</th>
+                            <th>Details</th>
+                            <th style="width: 60px;">Links</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr class="audit-log-row {{ log.action.lower().replace('_', '') }}">
+                            <td class="timestamp small">
+                                {{ log.timestamp[:19] }}
+                                <br>
+                                <small class="text-muted">{{ log.timestamp[20:] }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if log.action == 'INSERT' else 'warning' if log.action == 'UPDATE' else 'danger' if log.action == 'DELETE' else 'info' if log.action == 'SELECT' else 'primary' if 'TRANSACTION' in log.action else 'secondary' }}">
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/logs?table={{ log.table_name }}" class="text-decoration-none fw-bold">
+                                    {{ log.table_name }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="/record/{{ log.table_name }}/{{ log.record_id }}" class="text-decoration-none">
+                                    <code>{{ log.record_id }}</code>
+                                </a>
+                            </td>
+                            <td>
+                                {% if log.changes %}
+                                    <button class="btn btn-sm btn-outline-info" onclick="toggleJSON('changes-{{ loop.index }}')">
+                                        <i class="fas fa-eye me-1"></i>
+                                        {{ log.changes|length }} changes
+                                    </button>
+                                    <div id="changes-{{ loop.index }}" style="display: none;" class="mt-2">
+                                        {% for field, change in log.changes.items() %}
+                                            <div class="change-item mb-1">
+                                                <strong>{{ field }}:</strong><br>
+                                                <small class="old-value">{{ change.old }}</small>
+                                                <i class="fas fa-arrow-right mx-1"></i>
+                                                <small class="new-value">{{ change.new }}</small>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% elif log.old_values %}
+                                    <button class="btn btn-sm btn-outline-warning" onclick="toggleJSON('old-{{ loop.index }}')">
+                                        <i class="fas fa-history me-1"></i>
+                                        Old Values
+                                    </button>
+                                    <div id="old-{{ loop.index }}" style="display: none;" class="json-viewer mt-2 small">
+                                        {{ log.old_values|safe if log.old_values is string else log.old_values|tojson(indent=2) }}
+                                    </div>
+                                {% elif log.new_values %}
+                                    <button class="btn btn-sm btn-outline-success" onclick="toggleJSON('new-{{ loop.index }}')">
+                                        <i class="fas fa-plus me-1"></i>
+                                        New Values
+                                    </button>
+                                    <div id="new-{{ loop.index }}" style="display: none;" class="json-viewer mt-2 small">
+                                        {{ log.new_values|safe if log.new_values is string else log.new_values|tojson(indent=2) }}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="row">
+                                    {% if log.user_info %}
+                                        <div class="col-6">
+                                            <button class="btn btn-sm btn-outline-secondary w-100" onclick="toggleJSON('user-{{ loop.index }}')">
+                                                <i class="fas fa-user me-1"></i>
+                                                User Info
+                                            </button>
+                                            <div id="user-{{ loop.index }}" style="display: none;" class="json-viewer mt-2 small">
+                                                {{ log.user_info|safe if log.user_info is string else log.user_info|tojson(indent=2) }}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if log.ip_address or log.user_agent %}
+                                        <div class="col-6">
+                                            <button class="btn btn-sm btn-outline-info w-100" onclick="toggleJSON('tech-{{ loop.index }}')">
+                                                <i class="fas fa-desktop me-1"></i>
+                                                Tech Info
+                                            </button>
+                                            <div id="tech-{{ loop.index }}" style="display: none;" class="small mt-2">
+                                                {% if log.ip_address %}
+                                                    <strong>IP:</strong> {{ log.ip_address }}<br>
+                                                {% endif %}
+                                                {% if log.user_agent %}
+                                                    <strong>User Agent:</strong><br>
+                                                    <small>{{ log.user_agent[:100] }}{% if log.user_agent|length > 100 %}...{% endif %}</small>
+                                                {% endif %}
+                                                {% if log.session_id %}
+                                                    <br><strong>Session:</strong> <code>{{ log.session_id[:20] }}...</code>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group-vertical btn-group-sm">
+                                    <a href="/record/{{ log.table_name }}/{{ log.record_id }}" 
+                                       class="btn btn-outline-primary btn-sm" 
+                                       title="View Record History">
+                                        <i class="fas fa-history"></i>
+                                    </a>
+                                    <button class="btn btn-outline-secondary btn-sm" 
+                                            onclick="copyToClipboard('{{ log.id }}')"
+                                            title="Copy Log ID">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    <nav aria-label="Audit logs pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="?{{ get_pagination_url(current_filters.page - 1) }}">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                </li>
+            {% endif %}
+            
+            <!-- Page numbers -->
+            {% set start_page = max(1, current_filters.page - 2) %}
+            {% set end_page = min(current_filters.page + 3, pagination.total_pages + 1) %}
+            {% for page_num in range(start_page, end_page) %}
+                <li class="page-item {{ 'active' if page_num == current_filters.page }}">
+                    <a class="page-link" href="?{{ get_pagination_url(page_num) }}">{{ page_num }}</a>
+                </li>
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{{ get_pagination_url(current_filters.page + 1) }}">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No audit logs found</h5>
+            {% if current_filters.table or current_filters.action or current_filters.record_id %}
+                <p class="text-muted">Try adjusting your filter criteria.</p>
+                <a href="/logs" class="btn btn-outline-primary">
+                    <i class="fas fa-times me-1"></i>
+                    Clear Filters
+                </a>
+            {% else %}
+                <p class="text-muted">Start using the main application to see audit logs here.</p>
+                <a href="http://localhost:5000" target="_blank" class="btn btn-outline-primary">
+                    <i class="fas fa-external-link-alt me-1"></i>
+                    Open Main Application
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changePerPage(value) {
+        const url = new URL(window.location);
+        url.searchParams.set('per_page', value);
+        url.searchParams.set('page', '1'); // Reset to first page
+        window.location.href = url.toString();
+    }
+    
+    // Auto-submit form when filters change
+    document.querySelectorAll('#table, #action').forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+    
+    // Date range shortcuts
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add quick date range buttons
+        const dateFromInput = document.getElementById('date_from');
+        const dateToInput = document.getElementById('date_to');
+        
+        // Create shortcut buttons
+        const shortcuts = document.createElement('div');
+        shortcuts.className = 'mt-2';
+        shortcuts.innerHTML = `
+            <small class="text-muted me-2">Quick ranges:</small>
+            <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="setDateRange(1)">Today</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="setDateRange(7)">7 days</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="setDateRange(30)">30 days</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setDateRange(0)">Clear</button>
+        `;
+        
+        dateToInput.parentNode.appendChild(shortcuts);
+    });
+    
+    function setDateRange(days) {
+        const dateFromInput = document.getElementById('date_from');
+        const dateToInput = document.getElementById('date_to');
+        
+        if (days === 0) {
+            dateFromInput.value = '';
+            dateToInput.value = '';
+        } else {
+            const today = new Date();
+            const fromDate = new Date(today.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+            
+            dateFromInput.value = fromDate.toISOString().split('T')[0];
+            dateToInput.value = today.toISOString().split('T')[0];
+        }
+        
+        // Auto-submit form
+        dateFromInput.form.submit();
+    }
+</script>
+{% endblock %}

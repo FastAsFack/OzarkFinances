@@ -1,0 +1,614 @@
+{% extends "base.html" %}
+
+{% block title %}Important Info - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i>Important Quarterly Information
+        </h1>
+    </div>
+</div>
+
+<!-- BTW Quarterly Payments Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-euro-sign me-2"></i>Dutch BTW Quarterly Payments
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Timeframe</th>
+                                <th style="width: 15%;">Quarter</th>
+                                <th style="width: 15%;">Latest Payment Date</th>
+                                <th style="width: 15%;">Payment ID</th>
+                                <th style="width: 15%;">Cost</th>
+                                <th style="width: 15%;">Actual Payment Date</th>
+                                <th style="width: 10%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in btw_payments %}
+                            <tr class="btw-payment-row">
+                                <td>
+                                    <strong>{{ payment.timeframe }}</strong>
+                                </td>
+                                <td>
+                                    <span class="text-info">{{ payment.quarter_months }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-warning">{{ payment.latest_payment_date }}</span>
+                                    {% if payment.latest_payment_date < today and payment.status != 'paid' %}
+                                        <br><small class="text-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Overdue
+                                        </small>
+                                    {% elif payment.status != 'paid' %}
+                                        <br><small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>Due
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="payment-id-display" id="payment-id-{{ payment.id }}">
+                                        {{ format_payment_id(payment.payment_id) }}
+                                    </span>
+                                    <input type="text" class="form-control form-control-sm payment-id-input d-none" 
+                                           id="payment-id-input-{{ payment.id }}" 
+                                           value="{{ payment.payment_id or '' }}" 
+                                           placeholder="Enter Payment ID">
+                                </td>
+                                <td>
+                                    <span class="cost-display" id="cost-{{ payment.id }}">
+                                        {{ format_euro(payment.cost) }}
+                                    </span>
+                                    <input type="number" class="form-control form-control-sm cost-input d-none" 
+                                           id="cost-input-{{ payment.id }}" 
+                                           value="{{ payment.cost }}" 
+                                           step="0.01" min="0"
+                                           placeholder="0.00">
+                                    <br>
+                                    <small class="text-muted">
+                                        Auto: {{ format_euro(quarter_calculations.get(payment.timeframe, 0)) }}
+                                    </small>
+                                </td>
+                                <td>
+                                    {% if payment.status == 'paid' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            {{ payment.actual_payment_date }}
+                                        </span>
+                                    {% else %}
+                                        <span class="actual-date-display" id="actual-date-{{ payment.id }}">
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Not Paid
+                                            </span>
+                                        </span>
+                                        <input type="date" class="form-control form-control-sm actual-date-input d-none" 
+                                               id="actual-date-input-{{ payment.id }}" 
+                                               value="{{ payment.actual_payment_date or '' }}">
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group-vertical btn-group-sm" role="group">
+                                        {% if payment.status != 'paid' %}
+                                            <!-- Edit/Save Button -->
+                                            <button type="button" class="btn btn-outline-info btn-edit" 
+                                                    data-payment-id="{{ payment.id }}"
+                                                    title="Edit payment details">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            
+                                            <!-- Auto Calculate Button -->
+                                            <button type="button" class="btn btn-outline-warning btn-sm" 
+                                                    title="Auto-calculate BTW from invoices"
+                                                    onclick="confirmAutoCalculate({{ payment.id }})">
+                                                <i class="fas fa-calculator"></i>
+                                            </button>
+                                            
+                                            <!-- Mark as Paid Button -->
+                                            <form method="POST" action="{{ url_for('mark_btw_paid', payment_id=payment.id) }}" 
+                                                  style="display: inline;">
+                                                <button type="button" class="btn btn-outline-success btn-sm" 
+                                                        title="Mark as paid today"
+                                                        onclick="confirmMarkPaid({{ payment.id }})">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            
+                                            <!-- Test Dialog Button -->
+                                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                    title="Test confirmation dialog"
+                                                    onclick="testDialogForPayment({{ payment.id }})">
+                                                <i class="fas fa-bug"></i>
+                                            </button>
+                                        {% else %}
+                                            <span class="badge bg-success mb-1">
+                                                <i class="fas fa-check-circle me-1"></i>Paid
+                                            </span>
+                                            
+                                            <!-- Reverse Payment Button -->
+                                            <form method="POST" action="{{ url_for('reverse_btw_payment', payment_id=payment.id) }}" 
+                                                  style="display: inline;">
+                                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                        title="Reverse payment (mark as unpaid)"
+                                                        onclick="confirmReverseBtwPayment({{ payment.id }})">
+                                                    <i class="fas fa-undo"></i> Reverse
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Instructions
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6 class="text-info mb-3">BTW Quarterly Payments:</h6>
+                <ul class="mb-0">
+                    <li>The <strong>Auto-Calculate</strong> <i class="fas fa-calculator"></i> button calculates BTW from your invoices for each quarter</li>
+                    <li>Use the <strong>Edit</strong> <i class="fas fa-edit"></i> button to manually enter payment details</li>
+                    <li>The <strong>Mark as Paid</strong> <i class="fas fa-check"></i> button records the payment as completed today</li>
+                    <li>The <strong>Reverse</strong> <i class="fas fa-undo"></i> button undoes a payment (marks as unpaid and clears payment date)</li>
+                    <li>Due dates are automatically calculated based on Dutch BTW deadlines</li>
+                    <li>Overdue payments are highlighted in red</li>
+                    <li>Payment IDs are automatically formatted with spaces every 4 digits for better readability</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Important Info page loaded');
+    
+    // Check if MessageBox class is available (preferred)
+    if (typeof MessageBox !== 'undefined') {
+        console.log('✓ MessageBox class is available');
+        console.log('  - showConfirmation:', typeof MessageBox.showConfirmation);
+        console.log('  - showModal:', typeof MessageBox.showModal);
+        console.log('  - showToast:', typeof MessageBox.showToast);
+    } else {
+        console.warn('✗ MessageBox class not found');
+    }
+    
+    // Check if global functions are available (fallback)
+    const globalFunctions = ['showConfirmation', 'showToast', 'showModal', 'showPrompt'];
+    globalFunctions.forEach(func => {
+        if (typeof window[func] === 'function') {
+            console.log(`✓ Global ${func} is available`);
+        } else {
+            console.error(`✗ Global ${func} is NOT available`);
+        }
+    });
+    
+    // Check Bootstrap
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        console.log('✓ Bootstrap Modal is available');
+    } else {
+        console.error('✗ Bootstrap Modal is NOT available');
+    }
+    
+    // Check for modal element
+    const modalElement = document.getElementById('customMessageModal');
+    if (modalElement) {
+        console.log('✓ Custom message modal element found');
+    } else {
+        console.error('✗ Custom message modal element NOT found');
+    }
+    
+    // If no confirmation system is available, create a simple fallback
+    if (typeof MessageBox === 'undefined' && typeof showConfirmation === 'undefined') {
+        console.warn('Creating fallback confirmation system...');
+        window.showConfirmation = function(title, message, onConfirm) {
+            if (confirm(title + '\n\n' + message)) {
+                if (typeof onConfirm === 'function') {
+                    onConfirm();
+                }
+            }
+        };
+        console.log('✓ Fallback confirmation system created');
+    }
+    
+    // BTW Payment editing functionality
+    const editButtons = document.querySelectorAll('.btn-edit');
+    console.log('Found edit buttons:', editButtons.length);
+    
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const paymentId = this.getAttribute('data-payment-id');
+            console.log('Edit button clicked for payment:', paymentId);
+            toggleEditMode(paymentId);
+        });
+    });
+    
+    // Add input formatting for payment IDs
+    const paymentIdInputs = document.querySelectorAll('.payment-id-input');
+    paymentIdInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            formatPaymentIdInput(this);
+        });
+    });
+    
+    function formatPaymentIdInput(input) {
+        // Get the current value and remove all spaces
+        let value = input.value.replace(/\s/g, '');
+        
+        // Add spaces every 4 characters
+        let formattedValue = value.replace(/(.{4})(?=.)/g, '$1 ');
+        
+        // Update the input value
+        input.value = formattedValue;
+    }
+    
+    function toggleEditMode(paymentId) {
+        console.log('Toggling edit mode for payment:', paymentId);
+        
+        const paymentIdDisplay = document.getElementById(`payment-id-${paymentId}`);
+        const paymentIdInput = document.getElementById(`payment-id-input-${paymentId}`);
+        const costDisplay = document.getElementById(`cost-${paymentId}`);
+        const costInput = document.getElementById(`cost-input-${paymentId}`);
+        const actualDateDisplay = document.getElementById(`actual-date-${paymentId}`);
+        const actualDateInput = document.getElementById(`actual-date-input-${paymentId}`);
+        const editButton = document.querySelector(`[data-payment-id="${paymentId}"]`);
+        
+        if (!paymentIdDisplay || !paymentIdInput || !costDisplay || !costInput || !editButton) {
+            console.error('Could not find required elements for payment:', paymentId);
+            return;
+        }
+        
+        if (paymentIdDisplay.classList.contains('d-none')) {
+            // Save mode - submit the changes
+            console.log('Saving changes for payment:', paymentId);
+            savePaymentChanges(paymentId);
+        } else {
+            // Edit mode - show inputs
+            console.log('Entering edit mode for payment:', paymentId);
+            paymentIdDisplay.classList.add('d-none');
+            paymentIdInput.classList.remove('d-none');
+            
+            // Format the payment ID input when entering edit mode
+            formatPaymentIdInput(paymentIdInput);
+            
+            costDisplay.classList.add('d-none');
+            costInput.classList.remove('d-none');
+            if (actualDateDisplay && actualDateInput) {
+                actualDateDisplay.classList.add('d-none');
+                actualDateInput.classList.remove('d-none');
+            }
+            
+            editButton.innerHTML = '<i class="fas fa-save"></i>';
+            editButton.title = 'Save changes';
+        }
+    }
+    
+    function savePaymentChanges(paymentId) {
+        console.log('Saving payment changes for:', paymentId);
+        
+        const paymentIdValue = document.getElementById(`payment-id-input-${paymentId}`).value;
+        const costValue = document.getElementById(`cost-input-${paymentId}`).value;
+        const actualDateValue = document.getElementById(`actual-date-input-${paymentId}`)?.value || '';
+        
+        const data = {
+            payment_id: paymentIdValue.replace(/\s/g, ''), // Remove spaces before saving
+            cost: costValue,
+            actual_payment_date: actualDateValue,
+            status: actualDateValue ? 'paid' : 'pending',
+            notes: ''
+        };
+        
+        console.log('Sending data:', data);
+        
+        fetch(`/btw/update/${paymentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.status === 'success') {
+                // Refresh the page to show updated data
+                location.reload();
+            } else {
+                console.error('Error saving changes:', data.message);
+                alert('Error saving changes: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('Error saving changes: ' + error.message);
+        });
+    }
+    
+    // Test function to verify dialog system is working
+    window.testConfirmDialog = function() {
+        console.log('Testing confirmation dialog...');
+        if (typeof showConfirmation === 'function') {
+            showConfirmation(
+                'Test Dialog',
+                'This is a test dialog. Click OK to see a success toast.',
+                function() {
+                    console.log('Test dialog confirmed!');
+                    if (typeof showToast === 'function') {
+                        showToast('Test dialog is working!', 'success');
+                    } else {
+                        alert('Test dialog confirmed!');
+                    }
+                }
+            );
+        } else {
+            console.error('showConfirmation function not available');
+            alert('showConfirmation function not available. Check console for details.');
+        }
+    };
+    
+    // Log successful initialization
+    console.log('Important Info page JavaScript fully initialized');
+    
+    // Add a test function to be called from browser console
+    window.testDialogs = function() {
+        console.log('Testing dialogs from console...');
+        testConfirmDialog();
+    };
+});
+
+// Simple test function that can be called from buttons or console
+function testDialogForPayment(paymentId) {
+    console.log('Testing dialog for payment:', paymentId);
+    
+    // Try multiple approaches to ensure it works
+    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
+        console.log('Using MessageBox.showConfirmation directly');
+        MessageBox.showConfirmation(
+            'Dialog Test',
+            `This is a test dialog for payment ID: ${paymentId}. The dialogs are working correctly!`,
+            function() {
+                console.log('Test dialog confirmed for payment:', paymentId);
+                if (typeof MessageBox.showToast === 'function') {
+                    MessageBox.showToast('Dialog test successful!', 'success');
+                } else {
+                    alert('Dialog test successful!');
+                }
+            }
+        );
+    } else if (typeof showConfirmation === 'function') {
+        console.log('Using global showConfirmation function');
+        showConfirmation(
+            'Dialog Test',
+            `This is a test dialog for payment ID: ${paymentId}. The dialogs are working correctly!`,
+            function() {
+                console.log('Test dialog confirmed for payment:', paymentId);
+                if (typeof showToast === 'function') {
+                    showToast('Dialog test successful!', 'success');
+                } else {
+                    alert('Dialog test successful!');
+                }
+            }
+        );
+    } else {
+        console.error('No dialog function available, using browser confirm');
+        if (confirm(`Dialog Test\n\nThis is a test dialog for payment ID: ${paymentId}. The dialogs are working correctly!`)) {
+            alert('Dialog test successful (using browser confirm)!');
+        }
+    }
+}
+
+// BTW Payment confirmation functions
+function confirmMarkPaid(paymentId) {
+    console.log('confirmMarkPaid called for payment:', paymentId);
+    
+    // Try MessageBox directly first, then fall back to global functions
+    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
+        console.log('Using MessageBox.showConfirmation directly');
+        MessageBox.showConfirmation(
+            'Mark Payment as Paid',
+            'Mark this BTW payment as paid today? This will record the current date as the payment date.',
+            function() {
+                console.log('Confirmed mark paid for payment:', paymentId);
+                submitMarkPaidForm(paymentId);
+            }
+        );
+    } else if (typeof showConfirmation === 'function') {
+        console.log('Using global showConfirmation function');
+        showConfirmation(
+            'Mark Payment as Paid',
+            'Mark this BTW payment as paid today? This will record the current date as the payment date.',
+            function() {
+                console.log('Confirmed mark paid for payment:', paymentId);
+                submitMarkPaidForm(paymentId);
+            }
+        );
+    } else {
+        console.error('No confirmation dialog available, using browser confirm');
+        if (confirm('Mark this BTW payment as paid today? This will record the current date as the payment date.')) {
+            submitMarkPaidForm(paymentId);
+        }
+    }
+}
+
+function submitMarkPaidForm(paymentId) {
+    try {
+        // Find the existing form for this action
+        const existingForm = document.querySelector(`form[action*="mark-paid/${paymentId}"]`);
+        if (existingForm) {
+            console.log('Found existing form, submitting...');
+            existingForm.submit();
+        } else {
+            console.log('Creating new form for mark paid...');
+            // Fallback: create and submit form with CSRF token
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/btw/mark-paid/${paymentId}`;
+            
+            // Add CSRF token if available
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken.getAttribute('content');
+                form.appendChild(csrfInput);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    } catch (error) {
+        console.error('Error submitting mark paid form:', error);
+        alert('Error processing request: ' + error.message);
+    }
+}
+
+function confirmReverseBtwPayment(paymentId) {
+    console.log('confirmReverseBtwPayment called for payment:', paymentId);
+    
+    // Try MessageBox directly first, then fall back to global functions
+    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
+        console.log('Using MessageBox.showConfirmation directly');
+        MessageBox.showConfirmation(
+            'Reverse BTW Payment',
+            'Reverse this payment and mark as unpaid? This will clear the payment date and change status back to pending.',
+            function() {
+                console.log('Confirmed reverse payment for payment:', paymentId);
+                submitReverseBtwForm(paymentId);
+            }
+        );
+    } else if (typeof showConfirmation === 'function') {
+        console.log('Using global showConfirmation function');
+        showConfirmation(
+            'Reverse BTW Payment',
+            'Reverse this payment and mark as unpaid? This will clear the payment date and change status back to pending.',
+            function() {
+                console.log('Confirmed reverse payment for payment:', paymentId);
+                submitReverseBtwForm(paymentId);
+            }
+        );
+    } else {
+        console.error('No confirmation dialog available, using browser confirm');
+        if (confirm('Reverse this payment and mark as unpaid? This will clear the payment date and change status back to pending.')) {
+            submitReverseBtwForm(paymentId);
+        }
+    }
+}
+
+function submitReverseBtwForm(paymentId) {
+    try {
+        // Find the existing form for this action
+        const existingForm = document.querySelector(`form[action*="reverse-payment/${paymentId}"]`);
+        if (existingForm) {
+            console.log('Found existing form, submitting...');
+            existingForm.submit();
+        } else {
+            console.log('Creating new form for reverse payment...');
+            // Fallback: create and submit form with CSRF token
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/btw/reverse-payment/${paymentId}`;
+            
+            // Add CSRF token if available
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken.getAttribute('content');
+                form.appendChild(csrfInput);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    } catch (error) {
+        console.error('Error submitting reverse payment form:', error);
+        alert('Error processing request: ' + error.message);
+    }
+}
+
+function confirmAutoCalculate(paymentId) {
+    console.log('confirmAutoCalculate called for payment:', paymentId);
+    
+    // Try MessageBox directly first, then fall back to global functions
+    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
+        console.log('Using MessageBox.showConfirmation directly');
+        MessageBox.showConfirmation(
+            'Auto-Calculate BTW Amount',
+            'Calculate the BTW amount automatically from your invoice data for this quarter? This will overwrite any manually entered amount.',
+            function() {
+                console.log('Confirmed auto calculate for payment:', paymentId);
+                submitAutoCalculateForm(paymentId);
+            }
+        );
+    } else if (typeof showConfirmation === 'function') {
+        console.log('Using global showConfirmation function');
+        showConfirmation(
+            'Auto-Calculate BTW Amount',
+            'Calculate the BTW amount automatically from your invoice data for this quarter? This will overwrite any manually entered amount.',
+            function() {
+                console.log('Confirmed auto calculate for payment:', paymentId);
+                submitAutoCalculateForm(paymentId);
+            }
+        );
+    } else {
+        console.error('No confirmation dialog available, using browser confirm');
+        if (confirm('Calculate the BTW amount automatically from your invoice data for this quarter? This will overwrite any manually entered amount.')) {
+            submitAutoCalculateForm(paymentId);
+        }
+    }
+}
+
+function submitAutoCalculateForm(paymentId) {
+    try {
+        console.log('Creating form for auto calculate...');
+        // Create and submit form with CSRF token
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/btw/auto-calculate/${paymentId}`;
+        
+        // Add CSRF token if available
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    } catch (error) {
+        console.error('Error submitting auto calculate form:', error);
+        alert('Error processing request: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

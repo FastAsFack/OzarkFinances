@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Showcase - Ozark Finances</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Default Theme -->
+    <link href="css/base-components.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet" id="theme-css">
+    
+    <style>
+        .theme-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--control-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .theme-option {
+            display: block;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem 0;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            color: var(--text-light);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .theme-option:hover {
+            background: var(--hover-color);
+            border-color: var(--border-medium);
+        }
+        
+        .theme-option.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .color-preview {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+            border: 2px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Selector -->
+    <div class="theme-selector">
+        <h6 class="mb-3">Choose Theme:</h6>
+        <a href="#" class="theme-option active" data-theme="style">
+            <span class="color-preview" style="background: #2b2b2b;"></span>
+            Original Dark
+        </a>
+        <a href="#" class="theme-option" data-theme="theme-deep-blue">
+            <span class="color-preview" style="background: #0f1419;"></span>
+            Deep Blue
+        </a>
+        <a href="#" class="theme-option" data-theme="theme-purple-night">
+            <span class="color-preview" style="background: #1a0d26;"></span>
+            Purple Night
+        </a>
+        <a href="#" class="theme-option" data-theme="theme-forest-green">
+            <span class="color-preview" style="background: #0d1f0d;"></span>
+            Forest Green
+        </a>
+        <a href="#" class="theme-option" data-theme="theme-warm-amber">
+            <span class="color-preview" style="background: #1f1611;"></span>
+            Warm Amber
+        </a>
+        <a href="#" class="theme-option" data-theme="theme-slate-gray">
+            <span class="color-preview" style="background: #0f172a;"></span>
+            Slate Gray
+        </a>
+    </div>
+
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a class="navbar-brand" href="index.html">
+                    <i class="fas fa-chart-line me-2"></i>Ozark Finances - Theme Showcase
+                </a>
+                <ul class="navbar-nav">
+                    <li><a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+                    <li><a class="nav-link" href="invoices.html"><i class="fas fa-receipt me-1"></i>Invoices</a></li>
+                    <li><a class="nav-link" href="withdraws.html"><i class="fas fa-money-bill-wave me-1"></i>Withdraws</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">
+                    <i class="fas fa-palette me-2"></i>Dark Mode Theme Variations
+                </h1>
+                <p class="text-muted mb-4">Switch between different dark mode themes using the selector in the top-right corner</p>
+            </div>
+        </div>
+
+        <!-- Theme Descriptions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Available Themes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6 class="text-primary">🌙 Original Dark</h6>
+                                <p class="text-muted small">Classic dark theme with neutral grays and blue accents. Professional and easy on the eyes.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-primary">🔵 Deep Blue</h6>
+                                <p class="text-muted small">Ocean-inspired theme with deep blue backgrounds and light blue accents. Calming and focused.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-primary">🟣 Purple Night</h6>
+                                <p class="text-muted small">Rich purple tones with violet accents. Creative and sophisticated appearance.</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6 class="text-primary">🟢 Forest Green</h6>
+                                <p class="text-muted small">Nature-inspired with deep forest greens. Relaxing and eco-friendly feel.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-primary">🟡 Warm Amber</h6>
+                                <p class="text-muted small">Cozy earth tones with amber highlights. Warm and inviting atmosphere.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-primary">⚫ Slate Gray</h6>
+                                <p class="text-muted small">Modern slate grays with bright blue accents. Clean and minimalist design.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample Components -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>Sample Invoice Card
+                        </h5>
+                        <a href="#" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <tbody>
+                                    <tr>
+                                        <td><span class="badge badge-primary">INV-001</span></td>
+                                        <td>25-12-2024</td>
+                                        <td class="text-end text-success">€1,250.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-primary">INV-002</span></td>
+                                        <td>24-12-2024</td>
+                                        <td class="text-end text-success">€875.50</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-primary">INV-003</span></td>
+                                        <td>23-12-2024</td>
+                                        <td class="text-end text-success">€2,100.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>Sample Form
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group">
+                                <label class="form-label">Invoice Number</label>
+                                <input type="text" class="form-control" placeholder="e.g., 250015">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Add Invoice
+                            </button>
+                            <button type="button" class="btn btn-custom">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Sample -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Success!</strong> This is how success messages look in the current theme.
+                </div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Error!</strong> This is how error messages appear in the current theme.
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Info!</strong> This is how informational messages are displayed.
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Total Invoices</h6>
+                        <h3 class="text-primary">15</h3>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Total Revenue</h6>
+                        <h3 class="text-success">€12,450</h3>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Withdraws</h6>
+                        <h3 class="text-danger">€3,200</h3>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Net Income</h6>
+                        <h3 class="text-primary">€9,250</h3>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: 90%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Theme switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeOptions = document.querySelectorAll('.theme-option');
+            const themeCss = document.getElementById('theme-css');
+            
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all options
+                    themeOptions.forEach(opt => opt.classList.remove('active'));
+                    
+                    // Add active class to clicked option
+                    this.classList.add('active');
+                    
+                    // Change the theme CSS file
+                    const theme = this.dataset.theme;
+                    themeCss.href = `css/${theme}.css`;
+                    
+                    // Store preference in localStorage
+                    localStorage.setItem('selectedTheme', theme);
+                });
+            });
+            
+            // Load saved theme on page load
+            const savedTheme = localStorage.getItem('selectedTheme');
+            if (savedTheme) {
+                const savedOption = document.querySelector(`[data-theme="${savedTheme}"]`);
+                if (savedOption) {
+                    themeOptions.forEach(opt => opt.classList.remove('active'));
+                    savedOption.classList.add('active');
+                    themeCss.href = `css/${savedTheme}.css`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

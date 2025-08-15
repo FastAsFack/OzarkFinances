@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Slate Storm */
+
+:root {
+    /* Dark Theme Base Colors - Slate Storm */
+    --bg-dark: #0f1419;
+    --control-dark: #1c252e;
+    --text-light: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: #475569;
+    --hover-color: #334155;
+    
+    /* Accent Colors - Slate Focused */
+    --primary-color: #64748b;
+    --primary-hover: #475569;
+    --success-color: #22c55e;
+    --success-light: #4ade80;
+    --danger-color: #ef4444;
+    --danger-light: #f87171;
+    --warning-color: #f59e0b;
+    --info-color: #06b6d4;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(100, 116, 139, 0.04);
+    --bg-medium-overlay: rgba(100, 116, 139, 0.08);
+    --bg-strong-overlay: rgba(100, 116, 139, 0.15);
+    
+    /* Border Variants */
+    --border-light: #334155;
+    --border-medium: #475569;
+    --border-strong: #64748b;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

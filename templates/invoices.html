@@ -1,0 +1,1777 @@
+{% extends "base.html" %}
+
+{% block title %}Invoices - Ozark Finances{% endblock %}
+
+{% block main_class %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-receipt me-2"></i>Invoice Management
+            <span class="info-btn" data-info="invoice-management" title="Click for more information">
+                <i class="fas fa-info"></i>
+            </span>
+            <!-- Mobile Add Button -->
+            <button class="btn btn-primary btn-sm float-end show-on-mobile" onclick="showMobileAddInvoice()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </h1>
+    </div>
+</div>
+
+<!-- Mobile Quick Actions Bar -->
+<div class="row mb-3 show-on-mobile">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary btn-sm flex-fill" onclick="showMobileAddInvoice()">
+                        <i class="fas fa-plus me-1"></i>Add Invoice
+                    </button>
+                    <button class="btn btn-info btn-sm flex-fill" onclick="toggleMobileFilters()">
+                        <i class="fas fa-filter me-1"></i>Filters
+                    </button>
+                    <button class="btn btn-success btn-sm flex-fill" onclick="exportCurrentView()">
+                        <i class="fas fa-download me-1"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card filter-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>Invoice Filters
+                    <span class="info-btn" data-info="invoice-search" title="Click for more information">
+                        <i class="fas fa-info"></i>
+                    </span>
+                    <!-- Mobile Filter Indicator -->
+                    <span class="badge bg-info ms-2 show-on-mobile" id="activeFiltersCount" style="display: none;">0</span>
+                </h5>
+                <button class="btn btn-outline-info btn-sm hide-on-mobile" type="button" data-bs-toggle="collapse" 
+                        data-bs-target="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">
+                    <i class="fas fa-cog me-1"></i>Toggle Advanced Filters
+                </button>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('invoices') }}" id="filterForm">
+                    
+                    <!-- Quick Date Presets - Always Visible -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-clock me-1"></i>Quick Date Presets:
+                            </label>
+                            <div class="btn-group flex-wrap" role="group" aria-label="Date presets">
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="setDatePreset('this_month')">
+                                    <i class="fas fa-calendar-day me-1"></i><span class="hide-on-mobile">This </span>Month
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="setDatePreset('last_month')">
+                                    <i class="fas fa-calendar-minus me-1"></i><span class="hide-on-mobile">Last </span>Month
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="setDatePreset('this_quarter')">
+                                    <i class="fas fa-calendar-week me-1"></i><span class="hide-on-mobile">This </span>Quarter
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="setDatePreset('this_year')">
+                                    <i class="fas fa-calendar-alt me-1"></i><span class="hide-on-mobile">This </span>Year
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filters - Collapsible -->
+                    <div class="collapse" id="advancedFilters">
+                        <div class="border rounded p-3 mb-3" style="background-color: rgba(255,255,255,0.02);">
+                            <h6 class="text-info mb-3">
+                                <i class="fas fa-tools me-1"></i>📊 Comprehensive Invoice Filtering System
+                            </h6>
+                            
+                            <!-- Invoice Number Filters -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-hashtag me-1"></i>Invoice Number Filters:
+                                    </label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label for="invoice_number" class="form-label">Exact Match:</label>
+                                            <input type="text" name="invoice_number" id="invoice_number" class="form-control" 
+                                                   placeholder="e.g., Invoice ID" value="{{ invoice_number }}">
+                                        </div>
+                                        <div class="col-6">
+                                            <label for="invoice_number_startswith" class="form-label">Starts With:</label>
+                                            <input type="text" name="invoice_number_startswith" id="invoice_number_startswith" class="form-control" 
+                                                   placeholder="e.g., starts with" value="{{ invoice_number_startswith }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Date Filters -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-calendar-alt me-1"></i>Date Filters:
+                                    </label>
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <label for="exact_date" class="form-label">Exact Date:</label>
+                                            <input type="date" name="exact_date" id="exact_date" class="form-control" 
+                                                   value="{{ exact_date }}">
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="date_from" class="form-label">From Date:</label>
+                                            <input type="date" name="date_from" id="date_from" class="form-control" 
+                                                   value="{{ date_from }}">
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="date_to" class="form-label">To Date:</label>
+                                            <input type="date" name="date_to" id="date_to" class="form-control" 
+                                                   value="{{ date_to }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Time-based Filters -->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="month_filter" class="form-label fw-bold">
+                                        <i class="fas fa-calendar-day me-1"></i>Month:
+                                    </label>
+                                    <select name="month_filter" id="month_filter" class="form-select">
+                                        <option value="">All Months</option>
+                                        <option value="1" {% if month_filter == '1' %}selected{% endif %}>January</option>
+                                        <option value="2" {% if month_filter == '2' %}selected{% endif %}>February</option>
+                                        <option value="3" {% if month_filter == '3' %}selected{% endif %}>March</option>
+                                        <option value="4" {% if month_filter == '4' %}selected{% endif %}>April</option>
+                                        <option value="5" {% if month_filter == '5' %}selected{% endif %}>May</option>
+                                        <option value="6" {% if month_filter == '6' %}selected{% endif %}>June</option>
+                                        <option value="7" {% if month_filter == '7' %}selected{% endif %}>July</option>
+                                        <option value="8" {% if month_filter == '8' %}selected{% endif %}>August</option>
+                                        <option value="9" {% if month_filter == '9' %}selected{% endif %}>September</option>
+                                        <option value="10" {% if month_filter == '10' %}selected{% endif %}>October</option>
+                                        <option value="11" {% if month_filter == '11' %}selected{% endif %}>November</option>
+                                        <option value="12" {% if month_filter == '12' %}selected{% endif %}>December</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="year_filter" class="form-label fw-bold">
+                                        <i class="fas fa-calendar-alt me-1"></i>Year:
+                                    </label>
+                                    <select name="year_filter" id="year_filter" class="form-select">
+                                        <option value="">All Years</option>
+                                        {% for year in available_years %}
+                                            <option value="{{ year }}" {% if year_filter == year %}selected{% endif %}>{{ year }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="quarter_filter" class="form-label fw-bold">
+                                        <i class="fas fa-chart-pie me-1"></i>Quarter:
+                                    </label>
+                                    <select name="quarter_filter" id="quarter_filter" class="form-select">
+                                        <option value="">All Quarters</option>
+                                        <option value="Q1" {% if quarter_filter == 'Q1' %}selected{% endif %}>Q1 (Jan-Mar)</option>
+                                        <option value="Q2" {% if quarter_filter == 'Q2' %}selected{% endif %}>Q2 (Apr-Jun)</option>
+                                        <option value="Q3" {% if quarter_filter == 'Q3' %}selected{% endif %}>Q3 (Jul-Sep)</option>
+                                        <option value="Q4" {% if quarter_filter == 'Q4' %}selected{% endif %}>Q4 (Oct-Dec)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-calendar-week me-1"></i>Weekdays:
+                                    </label>
+                                    <div class="weekday-checkboxes">
+                                        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" name="weekday_filter" 
+                                                   value="{{ day }}" id="weekday_{{ day }}"
+                                                   {% if day in weekday_filter %}checked{% endif %}>
+                                            <label class="form-check-label" for="weekday_{{ day }}">
+                                                {{ day[:3] }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Actions -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-custom me-2">
+                                <i class="fas fa-search me-1"></i>Apply All Filters
+                            </button>
+                            <a href="{{ url_for('invoices') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear All Filters
+                            </a>
+                        </div>
+                        
+                        <!-- Active Filters Display -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Active Filters:</label>
+                            <div class="active-filters">
+                                {% if invoice_number %}
+                                    <span class="badge bg-info me-1 mb-1">
+                                        <i class="fas fa-hashtag me-1"></i>Invoice: {{ invoice_number }}
+                                    </span>
+                                {% endif %}
+                                {% if invoice_number_startswith %}
+                                    <span class="badge bg-info me-1 mb-1">
+                                        <i class="fas fa-search me-1"></i>Starts: {{ invoice_number_startswith }}
+                                    </span>
+                                {% endif %}
+                                {% if exact_date %}
+                                    <span class="badge bg-success me-1 mb-1">
+                                        <i class="fas fa-calendar me-1"></i>Date: {{ exact_date }}
+                                    </span>
+                                {% endif %}
+                                {% if date_from or date_to %}
+                                    <span class="badge bg-success me-1 mb-1">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        Range: {{ date_from or 'Start' }} - {{ date_to or 'End' }}
+                                    </span>
+                                {% endif %}
+                                {% if month_filter %}
+                                    <span class="badge bg-secondary me-1 mb-1">
+                                        <i class="fas fa-calendar-day me-1"></i>Month: {{ month_filter }}
+                                    </span>
+                                {% endif %}
+                                {% if year_filter %}
+                                    <span class="badge bg-secondary me-1 mb-1">
+                                        <i class="fas fa-calendar-alt me-1"></i>Year: {{ year_filter }}
+                                    </span>
+                                {% endif %}
+                                {% if quarter_filter %}
+                                    <span class="badge bg-secondary me-1 mb-1">
+                                        <i class="fas fa-chart-pie me-1"></i>{{ quarter_filter }}
+                                    </span>
+                                {% endif %}
+                                {% if weekday_filter %}
+                                    <span class="badge bg-secondary me-1 mb-1">
+                                        <i class="fas fa-calendar-week me-1"></i>Days: {{ weekday_filter|join(', ') }}
+                                    </span>
+                                {% endif %}
+                                {% if date_preset %}
+                                    <span class="badge bg-info me-1 mb-1">
+                                        <i class="fas fa-clock me-1"></i>Preset: {{ date_preset.replace('_', ' ').title() }}
+                                    </span>
+                                {% endif %}
+                                {% if not (invoice_number or invoice_number_startswith or exact_date or date_from or date_to or month_filter or year_filter or quarter_filter or weekday_filter or date_preset) %}
+                                    <span class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>No filters active - showing all invoices
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden field for date preset -->
+                    <input type="hidden" name="date_preset" id="date_preset" value="{{ date_preset }}">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tools me-2"></i>Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <button class="btn btn-custom w-100 mb-2" onclick="triggerFileImport()">
+                            <i class="fas fa-file-import me-1"></i>Import Invoices
+                        </button>
+                        <input type="file" id="importFileInput" accept=".xlsx,.xls,.zip" multiple style="display: none;" onchange="importInvoices()">
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('generate_invoice') }}" class="btn btn-custom w-100 mb-2">
+                            <i class="fas fa-plus me-1"></i>Generate Invoice
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-custom w-100 mb-2" disabled>
+                            <i class="fas fa-envelope me-1"></i>Send Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice List and Totals -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Invoice History ({{ pagination.total if pagination else invoices|length }} entries)
+                    <span class="info-btn" data-info="invoice-search" title="Click for more information">
+                        <i class="fas fa-info"></i>
+                    </span>
+                </h5>
+                <div class="d-flex align-items-center">
+                    <!-- Quick search -->
+                    <input type="text" id="invoiceSearch" class="form-control form-control-sm me-2" 
+                           placeholder="Search..." style="width: 150px;">
+                    <small class="text-muted">
+                        {% if pagination %}
+                            Page {{ pagination.page }} of {{ pagination.total_pages }}
+                        {% else %}
+                            All entries
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Bulk Actions Bar -->
+            <div class="card-body py-2 border-bottom" id="bulkActionsBar" style="display: none;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <span class="me-3 text-info">
+                            <i class="fas fa-check-square me-2"></i>
+                            <span id="selectedCount">0</span> invoice(s) selected
+                        </span>
+                        <span class="info-btn" data-info="bulk-operations" title="Click for more information">
+                            <i class="fas fa-info"></i>
+                        </span>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-success" 
+                                onclick="bulkMarkAsPaid()" title="Mark selected as paid">
+                            <i class="fas fa-check me-1"></i>Mark Paid
+                        </button>
+                        <div class="vr mx-2"></div>
+                        <button type="button" class="btn btn-outline-secondary" 
+                                onclick="bulkMoveToBin()" title="Move selected to bin">
+                            <i class="fas fa-trash-alt me-1"></i>Move to Bin
+                        </button>
+                        <button type="button" class="btn btn-outline-info" 
+                                onclick="clearSelection()" title="Clear selection">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-0">
+                <!-- Desktop Table View -->
+                <div class="invoice-history-container desktop-table-view" style="max-height: 400px; overflow-y: auto;">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped mb-0">
+                            <thead class="sticky-top">
+                                <tr>
+                                    <!-- Bulk Selection Column -->
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color); width: 50px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAllInvoices" 
+                                                   onchange="toggleAllInvoices(this)">
+                                            <label class="form-check-label" for="selectAllInvoices">
+                                                <i class="fas fa-tasks" title="Select All"></i>
+                                            </label>
+                                        </div>
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);">
+                                        <a href="{{ url_for('invoices', 
+                                            sort_by='invoice_number', 
+                                            sort_dir='asc' if sort_by == 'invoice_number' and sort_dir == 'desc' else 'desc',
+                                            invoice_number=invoice_number,
+                                            invoice_number_startswith=invoice_number_startswith,
+                                            date_from=date_from,
+                                            date_to=date_to,
+                                            exact_date=exact_date,
+                                            month_filter=month_filter,
+                                            year_filter=year_filter,
+                                            quarter_filter=quarter_filter,
+                                            weekday_filter=weekday_filter,
+                                            date_preset=date_preset,
+                                            page=1) }}" 
+                                           class="text-decoration-none text-light d-flex align-items-center justify-content-between">
+                                            Invoice ID
+                                            {% if sort_by == 'invoice_number' %}
+                                                {% if sort_dir == 'asc' %}
+                                                    <i class="fas fa-sort-up text-info ms-1"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort-down text-info ms-1"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-sort text-muted ms-1"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);">
+                                        <a href="{{ url_for('invoices', 
+                                            sort_by='date', 
+                                            sort_dir='asc' if sort_by == 'date' and sort_dir == 'desc' else 'desc',
+                                            invoice_number=invoice_number,
+                                            invoice_number_startswith=invoice_number_startswith,
+                                            date_from=date_from,
+                                            date_to=date_to,
+                                            exact_date=exact_date,
+                                            month_filter=month_filter,
+                                            year_filter=year_filter,
+                                            quarter_filter=quarter_filter,
+                                            weekday_filter=weekday_filter,
+                                            date_preset=date_preset,
+                                            page=1) }}" 
+                                           class="text-decoration-none text-light d-flex align-items-center justify-content-between">
+                                            Date
+                                            {% if sort_by == 'date' %}
+                                                {% if sort_dir == 'asc' %}
+                                                    <i class="fas fa-sort-up text-info ms-1"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort-down text-info ms-1"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-sort text-muted ms-1"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);" class="mobile-hide">
+                                        <a href="{{ url_for('invoices', 
+                                            sort_by='amount_excl', 
+                                            sort_dir='asc' if sort_by == 'amount_excl' and sort_dir == 'desc' else 'desc',
+                                            invoice_number=invoice_number,
+                                            invoice_number_startswith=invoice_number_startswith,
+                                            date_from=date_from,
+                                            date_to=date_to,
+                                            exact_date=exact_date,
+                                            month_filter=month_filter,
+                                            year_filter=year_filter,
+                                            quarter_filter=quarter_filter,
+                                            weekday_filter=weekday_filter,
+                                            date_preset=date_preset,
+                                            page=1) }}" 
+                                           class="text-decoration-none text-light d-flex align-items-center justify-content-between">
+                                            Excl BTW
+                                            {% if sort_by == 'amount_excl' %}
+                                                {% if sort_dir == 'asc' %}
+                                                    <i class="fas fa-sort-up text-info ms-1"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort-down text-info ms-1"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-sort text-muted ms-1"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);" class="mobile-hide">
+                                        <a href="{{ url_for('invoices', 
+                                            sort_by='amount_btw', 
+                                            sort_dir='asc' if sort_by == 'amount_btw' and sort_dir == 'desc' else 'desc',
+                                            invoice_number=invoice_number,
+                                            invoice_number_startswith=invoice_number_startswith,
+                                            date_from=date_from,
+                                            date_to=date_to,
+                                            exact_date=exact_date,
+                                            month_filter=month_filter,
+                                            year_filter=year_filter,
+                                            quarter_filter=quarter_filter,
+                                            weekday_filter=weekday_filter,
+                                            date_preset=date_preset,
+                                            page=1) }}" 
+                                           class="text-decoration-none text-light d-flex align-items-center justify-content-between">
+                                            BTW
+                                            {% if sort_by == 'amount_btw' %}
+                                                {% if sort_dir == 'asc' %}
+                                                    <i class="fas fa-sort-up text-info ms-1"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort-down text-info ms-1"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-sort text-muted ms-1"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);">
+                                        <a href="{{ url_for('invoices', 
+                                            sort_by='amount_incl', 
+                                            sort_dir='asc' if sort_by == 'amount_incl' and sort_dir == 'desc' else 'desc',
+                                            invoice_number=invoice_number,
+                                            invoice_number_startswith=invoice_number_startswith,
+                                            date_from=date_from,
+                                            date_to=date_to,
+                                            exact_date=exact_date,
+                                            month_filter=month_filter,
+                                            year_filter=year_filter,
+                                            quarter_filter=quarter_filter,
+                                            weekday_filter=weekday_filter,
+                                            date_preset=date_preset,
+                                            page=1) }}" 
+                                           class="text-decoration-none text-light d-flex align-items-center justify-content-between">
+                                            Incl BTW
+                                            {% if sort_by == 'amount_incl' %}
+                                                {% if sort_dir == 'asc' %}
+                                                    <i class="fas fa-sort-up text-info ms-1"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort-down text-info ms-1"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-sort text-muted ms-1"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);">
+                                        Status
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in invoices %}
+                                <tr class="invoice-row" data-invoice-id="{{ invoice.InvoiceID }}">
+                                    <!-- Bulk Selection Checkbox -->
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input invoice-checkbox" type="checkbox" 
+                                                   value="{{ invoice.InvoiceID }}" 
+                                                   id="invoice-{{ invoice.InvoiceID }}"
+                                                   onchange="updateBulkActions()">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>{{ invoice.InvoiceID }}</strong>
+                                    </td>
+                                    <td>{{ invoice.InvoiceDate }}</td>
+                                    <td class="mobile-hide">{{ format_euro(invoice.Excl) }}</td>
+                                    <td class="mobile-hide">{{ format_euro(invoice.BTW) }}</td>
+                                    <td>
+                                        <strong>{{ format_euro(invoice.Incl) }}</strong>
+                                    </td>
+                                    <td>
+                                        {% set payment_status = invoice.payment_status or 'pending' %}
+                                        {% if payment_status == 'paid' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Paid
+                                            </span>
+                                        {% elif payment_status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-clock me-1"></i>Pending
+                                            </span>
+                                        {% elif payment_status == 'overdue' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Overdue
+                                            </span>
+                                        {% elif payment_status == 'draft' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-edit me-1"></i>Draft
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-question me-1"></i>{{ payment_status.title() }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <!-- Edit button (new) -->
+                                            <a href="{{ url_for('edit_invoice', invoice_id=invoice.InvoiceID) }}" 
+                                               class="btn btn-outline-primary" 
+                                               title="Edit invoice">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            
+                                            <!-- Download button -->
+                                            <a href="{{ url_for('download_invoice', invoice_id=invoice.InvoiceID) }}" 
+                                               class="btn btn-outline-success" 
+                                               title="Download invoice as Excel file">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            
+                                            <!-- Payment Status buttons based on current status -->
+                                            {% set payment_status = invoice.payment_status or 'pending' %}
+                                            {% if payment_status != 'paid' %}
+                                                <button type="button" class="btn btn-outline-success" 
+                                                        title="Mark as paid"
+                                                        onclick="confirmMarkInvoicePaid('{{ invoice.InvoiceID }}')">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            {% endif %}
+                                            
+                                            <!-- Move to bin button -->
+                                            <button type="button" class="btn btn-outline-secondary" 
+                                                    title="Move to bin"
+                                                    onclick="confirmMoveInvoiceToBin('{{ invoice.InvoiceID }}')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                        No invoices found matching your criteria.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="mobile-card-view show-on-mobile">
+                    <!-- Mobile Bulk Actions Bar -->
+                    <div class="card mb-3" id="mobileBulkActionsBar" style="display: none;">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-3 text-info">
+                                        <i class="fas fa-check-square me-2"></i>
+                                        <span id="mobileSelectedCount">0</span> selected
+                                    </span>
+                                </div>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-success" onclick="bulkMarkAsPaid()" title="Mark as paid">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="bulkMoveToBin()" title="Move to bin">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearSelection()" title="Clear selection">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile Select All Button -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 show-on-mobile">
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="selectAllMobile()">
+                            <i class="fas fa-check-square me-1"></i>Select All
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSelection()">
+                            <i class="fas fa-square me-1"></i>Clear All
+                        </button>
+                    </div>
+                    
+                    {% for invoice in invoices %}
+                    <div class="mobile-invoice-card" data-invoice-id="{{ invoice.InvoiceID }}">
+                        <div class="mobile-card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" 
+                                           value="{{ invoice.InvoiceID }}" 
+                                           id="mobile-invoice-{{ invoice.InvoiceID }}"
+                                           onchange="updateBulkActions()">
+                                </div>
+                                <div class="mobile-card-title">
+                                    <i class="fas fa-receipt me-2"></i>{{ invoice.InvoiceID }}
+                                </div>
+                            </div>
+                            <div class="mobile-card-badge">
+                                {% set payment_status = invoice.payment_status or 'pending' %}
+                                {% if payment_status == 'paid' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Paid
+                                    </span>
+                                {% elif payment_status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                {% elif payment_status == 'overdue' %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Overdue
+                                    </span>
+                                {% elif payment_status == 'draft' %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-edit me-1"></i>Draft
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ payment_status.title() }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mobile-card-details">
+                            <div class="mobile-card-detail">
+                                <div class="mobile-card-label">Date</div>
+                                <div class="mobile-card-value">{{ invoice.InvoiceDate }}</div>
+                            </div>
+                            <div class="mobile-card-detail">
+                                <div class="mobile-card-label">Total Amount</div>
+                                <div class="mobile-card-value">
+                                    <strong>{{ format_euro(invoice.Incl) }}</strong>
+                                </div>
+                            </div>
+                            <div class="mobile-card-detail">
+                                <div class="mobile-card-label">Excl BTW</div>
+                                <div class="mobile-card-value">{{ format_euro(invoice.Excl) }}</div>
+                            </div>
+                            <div class="mobile-card-detail">
+                                <div class="mobile-card-label">BTW</div>
+                                <div class="mobile-card-value">{{ format_euro(invoice.BTW) }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mobile-card-actions">
+                            <a href="{{ url_for('edit_invoice', invoice_id=invoice.InvoiceID) }}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <a href="{{ url_for('download_invoice', invoice_id=invoice.InvoiceID) }}" 
+                               class="btn btn-success btn-sm">
+                                <i class="fas fa-download me-1"></i>Download
+                            </a>
+                            <button class="btn btn-info btn-sm" onclick="viewInvoiceDetails('{{ invoice.InvoiceID }}')">
+                                <i class="fas fa-eye me-1"></i>View
+                            </button>
+                            
+                            <!-- Payment Status buttons based on current status -->
+                            {% set payment_status = invoice.payment_status or 'pending' %}
+                            {% if payment_status != 'paid' %}
+                                <button class="btn btn-success btn-sm" 
+                                        onclick="confirmMarkInvoicePaid('{{ invoice.InvoiceID }}')">
+                                    <i class="fas fa-check me-1"></i>Mark Paid
+                                </button>
+                            {% endif %}
+                            
+                            <button class="btn btn-secondary btn-sm" onclick="confirmMoveInvoiceToBin('{{ invoice.InvoiceID }}')">
+                                <i class="fas fa-trash-alt me-1"></i>Bin
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3"></i><br>
+                        <h5>No invoices found</h5>
+                        <p>No invoices match your current filters.</p>
+                        <button class="btn btn-primary" onclick="showMobileAddInvoice()">
+                            <i class="fas fa-plus me-1"></i>Add First Invoice
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if pagination and pagination.total_pages > 1 %}
+        <div class="mt-3">
+            <nav aria-label="Invoice history pagination">
+                <ul class="pagination pagination-sm justify-content-center">
+                    <!-- Previous button -->
+                    <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+                        {% set prev_url = url_for('invoices', page=pagination.prev_num, 
+                                                  invoice_number=invoice_number, invoice_number_startswith=invoice_number_startswith,
+                                                  date_from=date_from, date_to=date_to, exact_date=exact_date,
+                                                  month_filter=month_filter, year_filter=year_filter, quarter_filter=quarter_filter,
+                                                  weekday_filter=weekday_filter, date_preset=date_preset) %}
+                        <a class="page-link" href="{{ prev_url if pagination.has_prev else '#' }}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                    
+                    <!-- Page numbers -->
+                    {% set start_page = [1, pagination.page - 2]|max %}
+                    {% set end_page = [pagination.total_pages, pagination.page + 2]|min %}
+                    
+                    {% if start_page > 1 %}
+                        {% set first_url = url_for('invoices', page=1,
+                                                   invoice_number=invoice_number, invoice_number_startswith=invoice_number_startswith,
+                                                   date_from=date_from, date_to=date_to, exact_date=exact_date,
+                                                   month_filter=month_filter, year_filter=year_filter, quarter_filter=quarter_filter,
+                                                   weekday_filter=weekday_filter, date_preset=date_preset) %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ first_url }}">1</a>
+                        </li>
+                        {% if start_page > 2 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% for page_num in range(start_page, end_page + 1) %}
+                        {% set page_url = url_for('invoices', page=page_num,
+                                                  invoice_number=invoice_number, invoice_number_startswith=invoice_number_startswith,
+                                                  date_from=date_from, date_to=date_to, exact_date=exact_date,
+                                                  month_filter=month_filter, year_filter=year_filter, quarter_filter=quarter_filter,
+                                                  weekday_filter=weekday_filter, date_preset=date_preset) %}
+                        <li class="page-item {{ 'active' if page_num == pagination.page }}">
+                            <a class="page-link" href="{{ page_url }}">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                    
+                    {% if end_page < pagination.total_pages %}
+                        {% if end_page < pagination.total_pages - 1 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                        {% set last_url = url_for('invoices', page=pagination.total_pages,
+                                                  invoice_number=invoice_number, invoice_number_startswith=invoice_number_startswith,
+                                                  date_from=date_from, date_to=date_to, exact_date=exact_date,
+                                                  month_filter=month_filter, year_filter=year_filter, quarter_filter=quarter_filter,
+                                                  weekday_filter=weekday_filter, date_preset=date_preset) %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ last_url }}">{{ pagination.total_pages }}</a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- Next button -->
+                    <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+                        {% set next_url = url_for('invoices', page=pagination.next_num,
+                                                  invoice_number=invoice_number, invoice_number_startswith=invoice_number_startswith,
+                                                  date_from=date_from, date_to=date_to, exact_date=exact_date,
+                                                  month_filter=month_filter, year_filter=year_filter, quarter_filter=quarter_filter,
+                                                  weekday_filter=weekday_filter, date_preset=date_preset) %}
+                        <a class="page-link" href="{{ next_url if pagination.has_next else '#' }}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Page info -->
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Showing entries {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to 
+                    {{ [pagination.page * pagination.per_page, pagination.total]|min }} of {{ pagination.total }} total
+                </small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Summary Card -->
+        <div class="card totals-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calculator me-2"></i>Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong>Total Entries:</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="badge bg-info fs-6">{{ pagination.total if pagination else invoices|length }}</span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong>Excl BTW:</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="badge bg-primary fs-6">{{ format_euro(total_excl) }}</span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong>BTW:</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="badge bg-warning fs-6">{{ format_euro(total_btw) }}</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Incl BTW:</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="badge bg-success fs-6">{{ format_euro(total_incl) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Bin Card (Integrated) -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-trash-alt me-2"></i>Invoice Bin
+                    <span class="info-btn" data-info="invoice-bin" title="Click for more information">
+                        <i class="fas fa-info"></i>
+                    </span>
+                </h5>
+                <span class="badge bg-danger" id="binCount">{{ bin_invoices|length if bin_invoices else 0 }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div id="binContent">
+                    {% if bin_invoices and bin_invoices|length > 0 %}
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead class="table-dark sticky-top">
+                                    <tr>
+                                        <th style="font-size: 0.75rem;">ID</th>
+                                        <th style="font-size: 0.75rem;">Date</th>
+                                        <th style="font-size: 0.75rem;">Amount</th>
+                                        <th style="font-size: 0.75rem; width: 80px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for invoice in bin_invoices %}
+                                    <tr style="font-size: 0.8rem;" id="binRow_{{ invoice.InvoiceID }}">
+                                        <td>
+                                            <small class="text-warning">{{ invoice.InvoiceID }}</small>
+                                        </td>
+                                        <td>
+                                            <small>{{ invoice.InvoiceDate }}</small>
+                                        </td>
+                                        <td>
+                                            <small>{{ format_euro(invoice.Incl) }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-primary btn-sm" 
+                                                        style="font-size: 0.65rem; padding: 0.1rem 0.3rem;" 
+                                                        onclick="restoreInvoiceFromBin('{{ invoice.InvoiceID }}')"
+                                                        title="Restore">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm" 
+                                                        style="font-size: 0.65rem; padding: 0.1rem 0.3rem;" 
+                                                        onclick="permanentDeleteInvoice('{{ invoice.InvoiceID }}')"
+                                                        title="Delete Forever">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Bin Actions Footer -->
+                    <div class="card-footer bg-dark">
+                        <div class="row">
+                            <div class="col-6">
+                                <form method="POST" action="{{ url_for('auto_cleanup_bin') }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm w-100" 
+                                            onclick="return confirm('This will permanently delete all invoices that have been in the bin for more than 30 days. Continue?')">
+                                        <i class="fas fa-broom me-1"></i>Cleanup
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('invoices_bin') }}" class="btn btn-outline-info btn-sm w-100">
+                                    <i class="fas fa-expand me-1"></i>View All
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-trash-alt fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No invoices in bin</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Date preset functions
+function setDatePreset(preset) {
+    document.getElementById('date_preset').value = preset;
+    
+    const today = new Date();
+    let startDate, endDate;
+    
+    switch(preset) {
+        case 'this_month':
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            break;
+        case 'last_month':
+            startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+            break;
+        case 'this_quarter':
+            const quarter = Math.floor(today.getMonth() / 3);
+            startDate = new Date(today.getFullYear(), quarter * 3, 1);
+            endDate = new Date(today.getFullYear(), (quarter + 1) * 3, 0);
+            break;
+        case 'this_year':
+            startDate = new Date(today.getFullYear(), 0, 1);
+            endDate = new Date(today.getFullYear(), 11, 31);
+            break;
+    }
+    
+    if (startDate && endDate) {
+        document.getElementById('date_from').value = startDate.toISOString().split('T')[0];
+        document.getElementById('date_to').value = endDate.toISOString().split('T')[0];
+    }
+    
+    document.getElementById('filterForm').submit();
+}
+
+// Integrated Bin Functions
+function restoreInvoiceFromBin(invoiceId) {
+    showConfirmation(
+        'Restore Invoice',
+        `Are you sure you want to restore invoice ${invoiceId} from the bin?`,
+        function() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/invoices/restore/${invoiceId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+function permanentDeleteInvoice(invoiceId) {
+    showConfirmation(
+        'Permanently Delete Invoice',
+        `Are you sure you want to permanently delete invoice ${invoiceId}? This action cannot be undone.`,
+        function() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/invoices/permanent-delete/${invoiceId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+// Update bin count after actions
+function updateBinCount() {
+    fetch('/api/bin-count')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('binCount').textContent = data.count;
+        })
+        .catch(error => console.error('Error updating bin count:', error));
+}
+
+// Mobile filter toggle
+function toggleMobileFilters() {
+    const filterCard = document.querySelector('.filter-card');
+    const advancedFilters = document.getElementById('advancedFilters');
+    
+    if (filterCard.style.display === 'none' || filterCard.style.display === '') {
+        filterCard.style.display = 'block';
+        advancedFilters.classList.add('show');
+    } else {
+        filterCard.style.display = 'none';
+        advancedFilters.classList.remove('show');
+    }
+}
+
+// Update active filters count for mobile
+function updateActiveFiltersCount() {
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    let count = 0;
+    
+    for (let [key, value] of formData.entries()) {
+        if (value && value.trim() !== '' && key !== 'date_preset') {
+            count++;
+        }
+    }
+    
+    const countElement = document.getElementById('activeFiltersCount');
+    if (count > 0) {
+        countElement.textContent = count;
+        countElement.style.display = 'inline';
+    } else {
+        countElement.style.display = 'none';
+    }
+}
+
+// Bulk selection functions
+function toggleAllInvoices(checkbox) {
+    const checkboxes = document.querySelectorAll('.invoice-checkbox');
+    const bulkActionsBar = document.getElementById('bulkActionsBar');
+    
+    checkboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+    });
+    
+    updateSelectedCount();
+    
+    if (checkbox.checked && checkboxes.length > 0) {
+        bulkActionsBar.style.display = 'block';
+    } else {
+        bulkActionsBar.style.display = 'none';
+    }
+}
+
+function updateSelectedCount() {
+    const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
+    const selectedCount = selectedCheckboxes.length;
+    const bulkActionsBar = document.getElementById('bulkActionsBar');
+    const countElement = document.getElementById('selectedCount');
+    
+    if (countElement) {
+        countElement.textContent = selectedCount;
+    }
+    
+    if (selectedCount > 0) {
+        bulkActionsBar.style.display = 'block';
+    } else {
+        bulkActionsBar.style.display = 'none';
+    }
+}
+
+function clearSelection() {
+    const checkboxes = document.querySelectorAll('.invoice-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllInvoices');
+    const bulkActionsBar = document.getElementById('bulkActionsBar');
+    
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+    }
+    
+    bulkActionsBar.style.display = 'none';
+}
+
+function bulkMarkAsPaid() {
+    const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
+    if (selectedCheckboxes.length === 0) {
+        showToast('No invoices selected', 'warning');
+        return;
+    }
+    
+    showConfirmation(
+        'Mark Invoices as Paid',
+        `Mark ${selectedCheckboxes.length} selected invoice(s) as paid?`,
+        function() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/invoices/bulk/mark-paid';
+            
+            selectedCheckboxes.forEach(checkbox => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'invoice_ids';
+                input.value = checkbox.value;
+                form.appendChild(input);
+            });
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+function bulkMoveToBin() {
+    const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
+    if (selectedCheckboxes.length === 0) {
+        showToast('No invoices selected', 'warning');
+        return;
+    }
+    
+    showConfirmation(
+        'Move Invoices to Bin',
+        `Move ${selectedCheckboxes.length} selected invoice(s) to the bin? You can restore them later.`,
+        function() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/invoices/bulk/move-to-bin';
+            
+            selectedCheckboxes.forEach(checkbox => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'invoice_ids';
+                input.value = checkbox.value;
+                form.appendChild(input);
+            });
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+// Export functions
+function exportCurrentView() {
+    // Get current filter parameters
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    
+    // Create export URL with current filters
+    const params = new URLSearchParams();
+    for (let [key, value] of formData.entries()) {
+        if (value && value.trim() !== '') {
+            params.append(key, value);
+        }
+    }
+    params.append('export', 'csv');
+    
+    window.location.href = '/invoices/export?' + params.toString();
+}
+
+// Import functions
+function triggerFileImport() {
+    document.getElementById('importFileInput').click();
+}
+
+function importInvoices() {
+    const fileInput = document.getElementById('importFileInput');
+    const files = fileInput.files;
+    
+    if (!files || files.length === 0) {
+        showToast('No files selected', 'warning');
+        return;
+    }
+    
+    // Show progress message
+    const totalFiles = files.length;
+    if (totalFiles === 1) {
+        showToast('Importing invoice...', 'info');
+    } else {
+        showToast(`Importing ${totalFiles} files...`, 'info');
+    }
+    
+    let importedCount = 0;
+    let failedCount = 0;
+    let processedCount = 0;
+    const results = [];
+    
+    // Function to process a single file
+    async function processFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/invoices/import', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            processedCount++;
+            
+            if (data.status === 'success') {
+                const fileImportedCount = data.imported_count || 1;
+                importedCount += fileImportedCount;
+                results.push({ file: file.name, success: true, count: fileImportedCount, message: data.message });
+            } else {
+                failedCount++;
+                results.push({ file: file.name, success: false, message: data.message });
+                console.error(`Failed to import ${file.name}:`, data.message);
+            }
+            
+            // Update progress for multiple files
+            if (totalFiles > 1) {
+                showToast(`Progress: ${processedCount}/${totalFiles} files processed`, 'info');
+            }
+            
+        } catch (error) {
+            processedCount++;
+            failedCount++;
+            results.push({ file: file.name, success: false, message: error.message });
+            console.error(`Error importing ${file.name}:`, error);
+        }
+    }
+    
+    // Process all files
+    Promise.all(Array.from(files).map(processFile))
+        .then(() => {
+            // Show final results
+            if (importedCount > 0 && failedCount === 0) {
+                if (totalFiles === 1) {
+                    showToast(results[0].message, 'success');
+                } else {
+                    showToast(`✅ Successfully imported ${importedCount} invoice(s) from ${totalFiles} file(s)`, 'success');
+                }
+            } else if (importedCount > 0 && failedCount > 0) {
+                showToast(`⚠️ Imported ${importedCount} invoice(s) from ${totalFiles - failedCount} file(s). ${failedCount} file(s) failed.`, 'warning');
+                // Log details for failed files
+                results.filter(r => !r.success).forEach(result => {
+                    console.warn(`Failed: ${result.file} - ${result.message}`);
+                });
+            } else {
+                if (totalFiles === 1) {
+                    showToast(results[0].message, 'error');
+                } else {
+                    showToast(`❌ Failed to import invoices from all ${failedCount} file(s). Check console for details.`, 'error');
+                }
+            }
+            
+            // Reload page if any imports were successful
+            if (importedCount > 0) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+        })
+        .finally(() => {
+            fileInput.value = ''; // Clear the file input
+        });
+}
+
+// Mobile add invoice function
+function showMobileAddInvoice() {
+    showToast('Mobile add invoice feature coming soon!', 'info');
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to checkboxes
+    const invoiceCheckboxes = document.querySelectorAll('.invoice-checkbox');
+    invoiceCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+    
+    // Update active filters count for mobile
+    updateActiveFiltersCount();
+    
+    // Add search functionality
+    const searchInput = document.getElementById('invoiceSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.invoice-history-container tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('.invoice-history-container tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+
+// Confirmation function for moving invoice to bin
+function confirmMoveInvoiceToBin(invoiceId) {
+    showConfirmation(
+        'Move Invoice to Bin',
+        `Are you sure you want to move invoice ${invoiceId} to the bin? You can restore it later from the bin page.`,
+        function() {
+            // Create and submit form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/invoices/move-to-bin/${invoiceId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+// Confirmation function for marking invoice as paid
+function confirmMarkInvoicePaid(invoiceId) {
+    showConfirmation(
+        'Mark Invoice as Paid',
+        `Mark invoice ${invoiceId} as paid? This will record the current date as the payment date.`,
+        function() {
+            // Create and submit form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/invoices/mark-paid/${invoiceId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+function setDatePreset(preset) {
+    const today = new Date();
+    let fromDate, toDate;
+    
+    switch(preset) {
+        case 'this_month':
+            fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            toDate = today;
+            break;
+        case 'last_month':
+            fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            toDate = new Date(today.getFullYear(), today.getMonth(), 0);
+            break;
+        case 'this_quarter':
+            const quarter = Math.floor(today.getMonth() / 3);
+            fromDate = new Date(today.getFullYear(), quarter * 3, 1);
+            toDate = today;
+            break;
+        case 'this_year':
+            fromDate = new Date(today.getFullYear(), 0, 1);
+            toDate = today;
+            break;
+    }
+    
+    // Format dates as YYYY-MM-DD
+    const formatDate = (date) => {
+        return date.getFullYear() + '-' + 
+               String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+               String(date.getDate()).padStart(2, '0');
+    };
+    
+    document.getElementById('date_from').value = formatDate(fromDate);
+    document.getElementById('date_to').value = formatDate(toDate);
+    document.getElementById('date_preset').value = preset;
+    
+    // Update button states
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Auto-submit the form
+    document.getElementById('filterForm').submit();
+}
+
+// Clear date preset when manual dates are changed
+document.getElementById('date_from').addEventListener('change', function() {
+    document.getElementById('date_preset').value = '';
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+});
+
+document.getElementById('date_to').addEventListener('change', function() {
+    document.getElementById('date_preset').value = '';
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+});
+
+// Highlight active preset button on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const activePreset = document.getElementById('date_preset').value;
+    if (activePreset) {
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            if (btn.getAttribute('onclick').includes(activePreset)) {
+                btn.classList.add('active');
+            }
+        });
+    }
+    
+    // Add search functionality
+    const searchInput = document.getElementById('invoiceSearch');
+    const tableRows = document.querySelectorAll('.invoice-history-container tbody tr');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        tableRows.forEach(row => {
+            const invoiceId = row.cells[0]?.textContent.toLowerCase() || '';
+            const date = row.cells[1]?.textContent.toLowerCase() || '';
+            const excl = row.cells[2]?.textContent.toLowerCase() || '';
+            const btw = row.cells[3]?.textContent.toLowerCase() || '';
+            const incl = row.cells[4]?.textContent.toLowerCase() || '';
+            
+            if (invoiceId.includes(searchTerm) || date.includes(searchTerm) || 
+                excl.includes(searchTerm) || btw.includes(searchTerm) || incl.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Update visible count
+        const visibleRows = Array.from(tableRows).filter(row => row.style.display !== 'none').length;
+        const emptyRow = document.querySelector('tbody tr td[colspan="5"]');
+        
+        if (visibleRows === 0 && !emptyRow) {
+            // Show "no results" message if no rows match and there's no empty state
+            if (searchTerm.trim() !== '') {
+                const tbody = document.querySelector('.invoice-history-container tbody');
+                const noResultsRow = document.createElement('tr');
+                noResultsRow.id = 'no-results-row';
+                noResultsRow.innerHTML = `
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fas fa-search fa-2x mb-2"></i><br>
+                        No entries match your search: "${searchTerm}"
+                    </td>
+                `;
+                tbody.appendChild(noResultsRow);
+            }
+        } else {
+            // Remove "no results" message
+            const noResultsRow = document.getElementById('no-results-row');
+            if (noResultsRow) {
+                noResultsRow.remove();
+            }
+        }
+    });
+});
+
+// Smooth scroll to top when pagination links are clicked
+document.querySelectorAll('.pagination .page-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (this.getAttribute('href') !== '#') {
+            // Small delay to allow page load, then scroll
+            setTimeout(() => {
+                const container = document.querySelector('.invoice-history-container');
+                if (container) {
+                    container.scrollTop = 0;
+                }
+            }, 100);
+        }
+    });
+});
+
+function triggerFileImport() {
+    document.getElementById('importFileInput').click();
+}
+
+function importInvoices() {
+    const fileInput = document.getElementById('importFileInput');
+    const file = fileInput.files[0];
+    
+    console.log('Import function called, file:', file);
+    
+    if (!file) {
+        showToast('Please select a file to import', 'warning');
+        return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['.xlsx', '.xls', '.zip'];
+    const fileName = file.name.toLowerCase();
+    const isValidType = allowedTypes.some(type => fileName.endsWith(type));
+    
+    console.log('File name:', fileName, 'Valid type:', isValidType);
+    
+    if (!isValidType) {
+        showToast('Please select an Excel file (.xlsx, .xls) or ZIP file (.zip)', 'error');
+        fileInput.value = ''; // Clear the input
+        return;
+    }
+    
+    // Show loading state
+    const button = document.querySelector('button[onclick="triggerFileImport()"]');
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Importing...';
+    
+    // Create FormData and upload file
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    console.log('Sending request to /api/invoices/import');
+    
+    fetch('/api/invoices/import', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.status === 'success') {
+            // Only show alert if not marked as silent
+            if (!data.silent) {
+                showToast(data.message, 'success');
+            }
+            location.reload(); // Refresh to show imported invoices
+        } else {
+            // Only show alert if not marked as silent
+            if (!data.silent) {
+                showToast('Import Error: ' + data.message, 'error');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred while importing invoices: ' + error.message, 'error');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = originalText;
+        fileInput.value = ''; // Clear the file input
+    });
+}
+
+// Enhanced row hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.invoice-row');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+
+// Confirmation function for moving invoice to bin
+function confirmMoveInvoiceToBin(invoiceId) {
+    showConfirmation(
+        'Move Invoice to Bin',
+        `Are you sure you want to move invoice ${invoiceId} to the bin? You can restore it later from the bin page.`,
+        function() {
+            // Create and submit form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/invoices/move-to-bin/${invoiceId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+// Confirmation function for marking invoice as paid
+function confirmMarkInvoicePaid(invoiceId) {
+    showConfirmation(
+        'Mark Invoice as Paid',
+        `Mark invoice ${invoiceId} as paid? This will record the current date as the payment date.`,
+        function() {
+            // Create and submit form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/invoices/mark-paid/${invoiceId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+
+// Bulk Selection Functions
+function toggleAllInvoices(selectAllCheckbox) {
+    const checkboxes = document.querySelectorAll('.invoice-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+    updateBulkActions();
+}
+
+function selectAllMobile() {
+    const checkboxes = document.querySelectorAll('.invoice-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
+    const selectedCount = selectedCheckboxes.length;
+    const bulkActionsBar = document.getElementById('bulkActionsBar');
+    const mobileBulkActionsBar = document.getElementById('mobileBulkActionsBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const mobileSelectedCountSpan = document.getElementById('mobileSelectedCount');
+    
+    if (selectedCount > 0) {
+        bulkActionsBar.style.display = 'block';
+        mobileBulkActionsBar.style.display = 'block';
+        selectedCountSpan.textContent = selectedCount;
+        mobileSelectedCountSpan.textContent = selectedCount;
+    } else {
+        bulkActionsBar.style.display = 'none';
+        mobileBulkActionsBar.style.display = 'none';
+    }
+    
+    // Update select all checkbox state
+    const allCheckboxes = document.querySelectorAll('.invoice-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllInvoices');
+    
+    if (selectedCount === 0) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = false;
+    } else if (selectedCount === allCheckboxes.length) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = true;
+    } else {
+        selectAllCheckbox.indeterminate = true;
+        selectAllCheckbox.checked = false;
+    }
+}
+
+function getSelectedInvoiceIds() {
+    const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
+    return Array.from(selectedCheckboxes).map(checkbox => checkbox.value);
+}
+
+function clearSelection() {
+    const checkboxes = document.querySelectorAll('.invoice-checkbox, #selectAllInvoices');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        checkbox.indeterminate = false;
+    });
+    updateBulkActions();
+}
+
+// Bulk Action Functions
+function bulkMarkAsPaid() {
+    const selectedIds = getSelectedInvoiceIds();
+    if (selectedIds.length === 0) return;
+    
+    showConfirmation(
+        'Mark Invoices as Paid',
+        `Mark ${selectedIds.length} invoice(s) as paid? This will record the current date as the payment date.`,
+        function() {
+            performBulkAction('mark-paid', selectedIds);
+        }
+    );
+}
+
+function bulkMoveToBin() {
+    const selectedIds = getSelectedInvoiceIds();
+    if (selectedIds.length === 0) return;
+    
+    showConfirmation(
+        'Move Invoices to Bin',
+        `Move ${selectedIds.length} invoice(s) to the bin? You can restore them later from the bin page.`,
+        function() {
+            performBulkAction('move-to-bin', selectedIds);
+        }
+    );
+}
+
+function performBulkAction(action, invoiceIds) {
+    // Create and submit form with selected invoice IDs
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/invoices/bulk/${action}`;
+    
+    // Add each invoice ID as a hidden input
+    invoiceIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'invoice_ids';
+        input.value = id;
+        form.appendChild(input);
+    });
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+
+{% endblock %}

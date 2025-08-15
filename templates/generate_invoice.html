@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Invoice - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <i class="fas fa-file-excel"></i> 
+                        Excel Invoice Generator
+                    </h2>
+                    <p class="mb-0 text-muted">Create professional invoices with automatic Excel generation</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="invoiceForm" 
+                          data-validate="true">
+                        <div class="row">
+                            <!-- Left Column - Input Fields -->
+                            <div class="col-lg-8">
+                                <!-- Output Filename -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-file-signature"></i> Output Filename</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-file-text"></i></span>
+                                            <input type="text" class="form-control" id="output_filename" name="output_filename" 
+                                                   placeholder="Auto-generated filename will be used if empty" 
+                                                   value="">
+                                            <span class="input-group-text">.xlsx</span>
+                                        </div>
+                                        <div class="form-text">Leave empty to use auto-generated filename: TringTring_{invoice_number}_{date}_TijnBakker</div>
+                                        <button type="button" class="btn btn-custom btn-sm mt-2" onclick="resetFilename()">
+                                            <i class="fas fa-sync"></i> Reset to Auto-Generated
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Main Amount Input (F18) -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-euro-sign"></i> Invoice Amount (F18)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="input-group input-group-lg">
+                                            <span class="input-group-text fw-bold">F18</span>
+                                            <input type="text" class="form-control form-control-lg" name="cell_f18" id="cell_f18"
+                                                   placeholder="Enter amount (Excl BTW)" onchange="updatePreview()" required
+                                                   data-validate="amount">
+                                            <span class="input-group-text">€</span>
+                                        </div>
+                                        <div class="alert alert-info mt-3" style="background-color: var(--control-dark); border-color: #0d6efd;">
+                                            <i class="fas fa-info-circle"></i>
+                                            <strong>F18 is the main invoice amount (excluding BTW).</strong> This is the only required field. BTW (21%) will be calculated automatically.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Image Upload -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-image"></i> Logo/Image Upload (Optional)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <input type="file" class="form-control" id="invoice_image" name="invoice_image" 
+                                               accept=".png,.jpg,.jpeg,.gif,.bmp">
+                                        <div class="form-text">Upload an image to insert into the Excel file (will be placed at cell B21)</div>
+                                        <div id="image-preview" class="mt-2" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column - Live Preview -->
+                            <div class="col-lg-4">
+                                <!-- Invoice Preview -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-eye"></i> Live Preview</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="preview-box p-3 border rounded" style="background-color: var(--control-dark); border-color: #555 !important;">
+                                            <div class="text-center mb-3">
+                                                <h6 class="fw-bold">INVOICE</h6>
+                                                <small>Number: <span id="preview-invoice-number">{{ next_invoice_number }}</span></small><br>
+                                                <small>Date: <span id="preview-invoice-date">{{ current_date }}</span></small>
+                                            </div>
+                                            
+                                            <div class="border-top pt-2 mb-2" style="border-color: #555 !important;">
+                                                <small class="fw-bold">Excel Cells:</small><br>
+                                                <small class="text-muted">F18: Main amount (Excl BTW)</small><br>
+                                                <small class="text-muted">C13: Invoice number (auto)</small><br>
+                                                <small class="text-muted">C14: Invoice date (auto)</small><br>
+                                                <small class="text-muted">B21: Image placement (optional)</small>
+                                            </div>
+                                            
+                                            <div class="border-top pt-2" style="border-color: #555 !important;">
+                                                <div class="row">
+                                                    <div class="col-7"><small class="fw-bold">Amount (Excl BTW):</small></div>
+                                                    <div class="col-5 text-end"><small id="preview-amount">€0.00</small></div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-7"><small class="fw-bold">BTW (21%):</small></div>
+                                                    <div class="col-5 text-end"><small id="preview-btw">€0.00</small></div>
+                                                </div>
+                                                <div class="row border-top pt-1" style="border-color: #555 !important;">
+                                                    <div class="col-7"><small class="fw-bold">Total (Incl BTW):</small></div>
+                                                    <div class="col-5 text-end"><strong><small id="preview-total">€0.00</small></strong></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- File Information -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6><i class="fas fa-info-circle"></i> Generation Info</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-2">
+                                            <small><strong>Invoice Number:</strong> {{ next_invoice_number }}</small>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small><strong>Filename:</strong> <span id="filename-preview">Auto-generated</span></small>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small><strong>Date Format:</strong> DD-MM-YYYY</small>
+                                        </div>
+                                        <div class="alert alert-success p-2" style="background-color: #155724; border-color: #198754;">
+                                            <small>
+                                                <i class="fas fa-check-circle"></i>
+                                                Invoice will be saved to database and Excel file generated
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{{ url_for('invoices') }}" class="btn btn-custom me-md-2">
+                                        <i class="fas fa-arrow-left"></i> Back to Invoices
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg" id="generateBtn">
+                                        <i class="fas fa-download"></i> Generate & Download Excel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simplified Invoice Generation JavaScript (based on FlaskWebApp analysis)
+
+function updatePreview() {
+    // Get F18 amount (main field) with European format support
+    const amountField = document.getElementById('cell_f18');
+    const rawValue = amountField.value;
+    const amount = window.cleanAmount ? window.cleanAmount(rawValue) : parseFloat(rawValue.replace(',', '.')) || 0;
+    
+    // Calculate BTW and total
+    const btw = amount * 0.21;
+    const total = amount + btw;
+    
+    // Update preview amounts
+    document.getElementById('preview-amount').textContent = formatEuro(amount);
+    document.getElementById('preview-btw').textContent = formatEuro(btw);
+    document.getElementById('preview-total').textContent = formatEuro(total);
+    
+    // Enable/disable generate button based on F18 value
+    const generateBtn = document.getElementById('generateBtn');
+    if (amount > 0) {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-download"></i> Generate & Download Excel';
+    } else {
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Enter Amount (F18) to Generate';
+    }
+}
+
+function formatEuro(amount) {
+    return '€' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+}
+
+function resetFilename() {
+    document.getElementById('output_filename').value = '';
+    document.getElementById('filename-preview').textContent = 'Auto-generated';
+}
+
+// Update filename preview when typing
+document.getElementById('output_filename').addEventListener('input', function() {
+    const filename = this.value.trim();
+    const preview = document.getElementById('filename-preview');
+    if (filename) {
+        const displayName = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
+        preview.textContent = displayName;
+    } else {
+        preview.textContent = 'Auto-generated';
+    }
+});
+
+// Image preview functionality
+document.getElementById('invoice_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const previewDiv = document.getElementById('image-preview');
+    
+    if (file) {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewDiv.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <img src="${e.target.result}" alt="Preview" style="max-width: 100px; max-height: 100px;" class="me-2 border rounded">
+                        <div>
+                            <small class="fw-bold">${file.name}</small><br>
+                            <small class="text-muted">Will be placed at cell B21</small>
+                        </div>
+                    </div>
+                `;
+                previewDiv.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewDiv.innerHTML = '<div class="alert alert-warning p-2"><small>Please select a valid image file</small></div>';
+            previewDiv.style.display = 'block';
+        }
+    } else {
+        previewDiv.style.display = 'none';
+    }
+});
+
+// Form validation
+document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+    const amount = parseFloat(document.getElementById('cell_f18').value);
+    
+    if (!amount || amount <= 0) {
+        e.preventDefault();
+        alert('Please enter a valid amount in F18 (Amount Excl BTW)');
+        document.getElementById('cell_f18').focus();
+        return false;
+    }
+    
+    // Show loading state
+    const generateBtn = document.getElementById('generateBtn');
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Excel...';
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Focus on amount field (F18) as it's the main required field
+    document.getElementById('cell_f18').focus();
+    
+    // Initialize preview
+    updatePreview();
+});
+
+// CSS for better appearance and consistency with app theme
+const style = document.createElement('style');
+style.textContent = `
+    .preview-box {
+        background-color: var(--control-dark) !important;
+        border: 1px solid #555 !important;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.9rem;
+        color: var(--text-light) !important;
+    }
+    
+    .input-group-text {
+        background-color: var(--control-dark);
+        border-color: #555;
+        color: var(--text-light);
+    }
+    
+    .btn-custom {
+        background-color: var(--control-dark);
+        border-color: #555;
+        color: var(--text-light);
+    }
+    
+    .btn-custom:hover {
+        background-color: #3a3a3a;
+        border-color: #666;
+        color: var(--text-light);
+    }
+    
+    .form-text {
+        color: #aaa !important;
+    }
+    
+    .alert-info {
+        background-color: var(--control-dark) !important;
+        border-color: #0d6efd !important;
+        color: var(--text-light) !important;
+    }
+    
+    .alert-success {
+        background-color: #155724 !important;
+        border-color: #198754 !important;
+        color: var(--text-light) !important;
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .btn-lg {
+            padding: 0.75rem 1rem;
+        }
+        
+        .col-lg-4 {
+            margin-top: 2rem;
+        }
+    }
+    
+    /* Enhanced form styling */
+    .form-control:focus {
+        background-color: var(--control-dark);
+        border-color: #777;
+        color: var(--text-light);
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    }
+    
+    .card-header {
+        background-color: var(--control-dark);
+        border-bottom: 1px solid #555;
+    }
+    
+    .card-header h5, .card-header h6 {
+        color: var(--text-light);
+        margin-bottom: 0;
+    }
+    
+    /* Preview box enhancements */
+    .border-top {
+        border-top: 1px solid #555 !important;
+    }
+    
+    /* Image preview styling */
+    #image-preview .alert {
+        background-color: var(--control-dark);
+        border-color: #555;
+        color: var(--text-light);
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

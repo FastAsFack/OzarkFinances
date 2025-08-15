@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Debt Log - {{ debt_name }} - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-history me-2"></i>Payment Log: {{ debt_name }}
+        </h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('debt') }}">Debt Management</a></li>
+                <li class="breadcrumb-item active">{{ debt_name }} Log</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Payment History
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Payment Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in log_data %}
+                            <tr>
+                                <td>{{ entry.CreatedDate }}</td>
+                                <td>{{ format_euro(entry.Amount) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">
+                                    No payment history available
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="{{ url_for('debt') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Debt Management
+        </a>
+    </div>
+</div>
+{% endblock %}

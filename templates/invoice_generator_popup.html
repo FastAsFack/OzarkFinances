@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Create Invoice - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-file-invoice"></i> Create New Invoice</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p class="text-muted">
+                                Click the button below to open the invoice generator in a new window. 
+                                Once you've completed your invoice, it will automatically be saved to your Ozark Finances system.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <button id="openInvoiceGenerator" class="btn btn-primary btn-lg">
+                                <i class="fas fa-external-link-alt"></i> Open Invoice Generator
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Messages -->
+                    <div id="invoiceStatus" class="mt-4" style="display: none;">
+                        <div id="statusMessage" class="alert"></div>
+                    </div>
+                    
+                    <!-- Recent Invoices Preview -->
+                    <div class="mt-5">
+                        <h4>Recent Invoices</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Client</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentInvoicesTable">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Generator Popup Integration JavaScript -->
+<script>
+class InvoiceGeneratorIntegration {
+    constructor() {
+        this.invoiceGeneratorWindow = null;
+        this.setupEventListeners();
+        this.loadRecentInvoices();
+    }
+    
+    setupEventListeners() {
+        // Open invoice generator button
+        document.getElementById('openInvoiceGenerator').addEventListener('click', () => {
+            this.openInvoiceGenerator();
+        });
+        
+        // Listen for messages from the invoice generator popup
+        window.addEventListener('message', (event) => {
+            this.handlePopupMessage(event);
+        });
+        
+        // Clean up when window closes
+        window.addEventListener('beforeunload', () => {
+            if (this.invoiceGeneratorWindow && !this.invoiceGeneratorWindow.closed) {
+                this.invoiceGeneratorWindow.close();
+            }
+        });
+    }
+    
+    async openInvoiceGenerator() {
+        try {
+            // Get configuration for the invoice generator
+            const config = await this.getInvoiceGeneratorConfig();
+            
+            // TODO: Replace with your actual invoice generator URL/path
+            // For now, we'll use a placeholder - you'll need to update this
+            const generatorURL = this.buildGeneratorURL(config);
+            
+            // Open popup window
+            const windowFeatures = 'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no';
+            this.invoiceGeneratorWindow = window.open(generatorURL, 'InvoiceGenerator', windowFeatures);
+            
+            if (!this.invoiceGeneratorWindow) {
+                this.showStatus('error', 'Popup blocked! Please allow popups for this site and try again.');
+                return;
+            }
+            
+            // Focus the popup
+            this.invoiceGeneratorWindow.focus();
+            
+            this.showStatus('info', 'Invoice generator opened. Complete your invoice and it will be automatically saved.');
+            
+        } catch (error) {
+            console.error('Error opening invoice generator:', error);
+            this.showStatus('error', 'Error opening invoice generator. Please try again.');
+        }
+    }
+    
+    buildGeneratorURL(config) {
+        // Point to the Flask invoice generator application
+        // The invoice generator runs on IP 192.168.1.153:5001
+        const baseURL = 'http://192.168.1.153:5001';
+        
+        // Add configuration as URL parameters
+        const params = new URLSearchParams({
+            'next_invoice_number': config.next_invoice_number,
+            'company_name': config.company_name,
+            'tax_rate': config.default_tax_rate,
+            'integration_mode': 'popup'
+        });
+        
+        return `${baseURL}?${params.toString()}`;
+    }
+    
+    async getInvoiceGeneratorConfig() {
+        try {
+            const response = await fetch('/invoice-generator/api/invoice-generator-config');
+            if (!response.ok) {
+                throw new Error('Failed to get configuration');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error getting config:', error);
+            // Return default config if API fails
+            return {
+                next_invoice_number: 'INV-001',
+                company_name: 'Ozark Finances',
+                default_tax_rate: 8.25,
+                currency_symbol: '$'
+            };
+        }
+    }
+    
+    handlePopupMessage(event) {
+        // TODO: Update this with your invoice generator's origin
+        // const allowedOrigin = 'http://localhost:5000'; // or your generator's domain
+        
+        // Security: Verify the message origin (uncomment when you know the origin)
+        // if (event.origin !== allowedOrigin) {
+        //     console.warn('Message from unauthorized origin:', event.origin);
+        //     return;
+        // }
+        
+        const data = event.data;
+        
+        // Handle different message types
+        switch (data.type) {
+            case 'invoice_completed':
+                this.handleInvoiceCompleted(data.invoice);
+                break;
+            case 'invoice_cancelled':
+                this.handleInvoiceCancelled();
+                break;
+            case 'generator_ready':
+                this.handleGeneratorReady();
+                break;
+            default:
+                console.log('Unknown message type:', data.type);
+        }
+    }
+    
+    async handleInvoiceCompleted(invoiceData) {
+        try {
+            this.showStatus('info', 'Saving invoice...');
+            
+            // Send invoice data to Flask backend
+            const response = await fetch('/invoice-generator/api/receive-invoice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(invoiceData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showStatus('success', `Invoice ${invoiceData.invoice_number} saved successfully!`);
+                this.loadRecentInvoices(); // Refresh the list
+                
+                // Close the popup
+                if (this.invoiceGeneratorWindow) {
+                    this.invoiceGeneratorWindow.close();
+                    this.invoiceGeneratorWindow = null;
+                }
+            } else {
+                this.showStatus('error', `Error saving invoice: ${result.error}`);
+            }
+            
+        } catch (error) {
+            console.error('Error saving invoice:', error);
+            this.showStatus('error', 'Error saving invoice. Please try again.');
+        }
+    }
+    
+    handleInvoiceCancelled() {
+        this.showStatus('info', 'Invoice creation cancelled.');
+        if (this.invoiceGeneratorWindow) {
+            this.invoiceGeneratorWindow.close();
+            this.invoiceGeneratorWindow = null;
+        }
+    }
+    
+    handleGeneratorReady() {
+        console.log('Invoice generator is ready');
+        // You can send additional data to the generator here if needed
+    }
+    
+    showStatus(type, message) {
+        const statusDiv = document.getElementById('invoiceStatus');
+        const messageDiv = document.getElementById('statusMessage');
+        
+        // Clear existing classes
+        messageDiv.className = 'alert';
+        
+        // Add appropriate class based on type
+        switch (type) {
+            case 'success':
+                messageDiv.classList.add('alert-success');
+                break;
+            case 'error':
+                messageDiv.classList.add('alert-danger');
+                break;
+            case 'info':
+                messageDiv.classList.add('alert-info');
+                break;
+            case 'warning':
+                messageDiv.classList.add('alert-warning');
+                break;
+        }
+        
+        messageDiv.textContent = message;
+        statusDiv.style.display = 'block';
+        
+        // Auto-hide success and info messages after 5 seconds
+        if (type === 'success' || type === 'info') {
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+    }
+    
+    async loadRecentInvoices() {
+        try {
+            // This would typically fetch from an API endpoint
+            // For now, we'll just show a placeholder
+            const tableBody = document.getElementById('recentInvoicesTable');
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No recent invoices found. Create your first invoice above!</td></tr>';
+            
+            // TODO: Implement actual API call to fetch recent invoices
+            // const response = await fetch('/invoice-generator/api/recent-invoices');
+            // const invoices = await response.json();
+            // this.renderInvoicesTable(invoices);
+            
+        } catch (error) {
+            console.error('Error loading recent invoices:', error);
+        }
+    }
+    
+    renderInvoicesTable(invoices) {
+        const tableBody = document.getElementById('recentInvoicesTable');
+        
+        if (invoices.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No invoices found</td></tr>';
+            return;
+        }
+        
+        tableBody.innerHTML = invoices.map(invoice => `
+            <tr>
+                <td>${invoice.invoice_number}</td>
+                <td>${invoice.client_name}</td>
+                <td>${new Date(invoice.invoice_date).toLocaleDateString()}</td>
+                <td>$${parseFloat(invoice.total_amount).toFixed(2)}</td>
+                <td>
+                    <span class="badge badge-${this.getStatusBadgeClass(invoice.status)}">
+                        ${invoice.status}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewInvoice(${invoice.id})">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    getStatusBadgeClass(status) {
+        switch (status) {
+            case 'paid': return 'success';
+            case 'sent': return 'info';
+            case 'overdue': return 'danger';
+            case 'draft': return 'secondary';
+            default: return 'secondary';
+        }
+    }
+}
+
+// Initialize the integration when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new InvoiceGeneratorIntegration();
+});
+
+// Helper function for viewing invoices (to be implemented)
+function viewInvoice(invoiceId) {
+    // TODO: Implement invoice viewing functionality
+    console.log('View invoice:', invoiceId);
+    // window.location.href = `/invoices/${invoiceId}`;
+}
+</script>
+
+<style>
+/* Additional styles for the invoice generator integration */
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 1.1rem;
+}
+
+#invoiceStatus {
+    animation: slideDown 0.3s ease-in-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.badge {
+    font-size: 0.75em;
+    padding: 0.25em 0.6em;
+}
+</style>
+{% endblock %}

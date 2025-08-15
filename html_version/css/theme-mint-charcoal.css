@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Mint Charcoal */
+
+:root {
+    /* Dark Theme Base Colors - Mint Charcoal */
+    --bg-dark: #0a1a15;
+    --control-dark: #162d22;
+    --text-light: #e0f2f1;
+    --text-muted: #80cbc4;
+    --border-color: #00695c;
+    --hover-color: #004d40;
+    
+    /* Accent Colors - Mint Focused */
+    --primary-color: #26a69a;
+    --primary-hover: #00796b;
+    --success-color: #66bb6a;
+    --success-light: #81c784;
+    --danger-color: #ef5350;
+    --danger-light: #e57373;
+    --warning-color: #ffb74d;
+    --info-color: #4fc3f7;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(38, 166, 154, 0.04);
+    --bg-medium-overlay: rgba(38, 166, 154, 0.08);
+    --bg-strong-overlay: rgba(38, 166, 154, 0.15);
+    
+    /* Border Variants */
+    --border-light: #00796b;
+    --border-medium: #00897b;
+    --border-strong: #26a69a;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

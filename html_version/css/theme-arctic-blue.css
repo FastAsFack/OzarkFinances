@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Arctic Blue */
+
+:root {
+    /* Dark Theme Base Colors - Arctic Blue */
+    --bg-dark: #0a1520;
+    --control-dark: #162a3d;
+    --text-light: #e3f2fd;
+    --text-muted: #90caf9;
+    --border-color: #1976d2;
+    --hover-color: #0d47a1;
+    
+    /* Accent Colors - Arctic Focused */
+    --primary-color: #2196f3;
+    --primary-hover: #1976d2;
+    --success-color: #66bb6a;
+    --success-light: #81c784;
+    --danger-color: #f44336;
+    --danger-light: #ef5350;
+    --warning-color: #ffb74d;
+    --info-color: #00bcd4;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(33, 150, 243, 0.04);
+    --bg-medium-overlay: rgba(33, 150, 243, 0.08);
+    --bg-strong-overlay: rgba(33, 150, 243, 0.15);
+    
+    /* Border Variants */
+    --border-light: #0d47a1;
+    --border-medium: #1976d2;
+    --border-strong: #2196f3;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

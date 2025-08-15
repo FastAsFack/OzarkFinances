@@ -1,0 +1,38 @@
+/* Ozark Finances - Dark Mode Variation 1: Deep Blue */
+
+/* CSS Variables for Deep Blue Dark Theme */
+:root {
+    /* Dark Theme Base Colors - Deep Blue */
+    --bg-dark: #0f1419;
+    --control-dark: #1a1f29;
+    --text-light: #e6f1ff;
+    --text-muted: #8bb5d1;
+    --border-color: #2d3748;
+    --hover-color: #2a3441;
+    
+    /* Accent Colors - Blue Focused */
+    --primary-color: #3182ce;
+    --primary-hover: #2c5aa0;
+    --success-color: #38a169;
+    --success-light: #68d391;
+    --danger-color: #e53e3e;
+    --danger-light: #fc8181;
+    --warning-color: #d69e2e;
+    --info-color: #3182ce;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(173, 216, 230, 0.03);
+    --bg-medium-overlay: rgba(173, 216, 230, 0.06);
+    --bg-strong-overlay: rgba(173, 216, 230, 0.12);
+    
+    /* Border Variants */
+    --border-light: #4a5568;
+    --border-medium: #5a6578;
+    --border-strong: #6a7588;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}
+
+/* All other styles remain the same - just import or copy from the main style.css */

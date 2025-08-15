@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Invoice Validation Test</h2>
+        
+        <!-- Validation Error Container -->
+        <div id="validationErrors" class="alert alert-danger" style="display: none;">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:</h6>
+            <ul id="errorList"></ul>
+        </div>
+
+        <form id="editInvoiceForm" method="POST">
+            <!-- Invoice Date -->
+            <div class="mb-3">
+                <label for="invoice_date" class="form-label">Invoice Date *</label>
+                <input type="date" class="form-control" id="invoice_date" name="invoice_date" required>
+            </div>
+
+            <!-- Amount Excluding BTW -->
+            <div class="mb-3">
+                <label for="amount_excl" class="form-label">Amount Excluding BTW *</label>
+                <input type="text" class="form-control" id="amount_excl" name="amount_excl" required>
+            </div>
+
+            <!-- BTW Amount -->
+            <div class="mb-3">
+                <label for="amount_btw" class="form-label">BTW Amount *</label>
+                <input type="text" class="form-control" id="amount_btw" name="amount_btw" required>
+            </div>
+
+            <!-- Amount Including BTW -->
+            <div class="mb-3">
+                <label for="amount_incl" class="form-label">Total Amount *</label>
+                <input type="text" class="form-control" id="amount_incl" name="amount_incl" required>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="mb-3">
+                <label for="payment_status" class="form-label">Payment Status</label>
+                <select class="form-select" id="payment_status" name="payment_status">
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Test Validation</button>
+        </form>
+    </div>
+
+    <script>
+        // Copy the validation functions from edit_invoice.html
+        function validateField(field, value, fieldName) {
+            const errors = [];
+            
+            if (field.hasAttribute('required') && (!value || value.trim() === '')) {
+                errors.push(`${fieldName} is required`);
+            }
+            
+            if (field.type === 'date' && value) {
+                const date = new Date(value);
+                if (isNaN(date.getTime())) {
+                    errors.push(`Invalid ${fieldName.toLowerCase()} format`);
+                }
+            }
+            
+            if (field.pattern && value && !new RegExp(field.pattern).test(value)) {
+                errors.push(`Invalid ${fieldName.toLowerCase()} format`);
+            }
+            
+            // Amount validation
+            if (field.name && field.name.includes('amount') && value) {
+                const numValue = parseFloat(value.replace(',', '.'));
+                if (isNaN(numValue) || numValue < 0) {
+                    errors.push(`${fieldName} must be a valid positive number`);
+                }
+            }
+            
+            return errors;
+        }
+
+        function showValidationErrors(errors) {
+            console.log('showValidationErrors called with:', errors);
+            console.log('Error types:', errors.map(e => typeof e));
+            
+            const errorContainer = document.getElementById('validationErrors');
+            const errorList = document.getElementById('errorList');
+            
+            if (errors.length > 0) {
+                errorList.innerHTML = errors.map(error => `<li>${error}</li>`).join('');
+                errorContainer.style.display = 'block';
+                errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                errorContainer.style.display = 'none';
+            }
+        }
+
+        // Form submission
+        document.getElementById('editInvoiceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            console.log('Form submission started');
+            
+            // Hide previous messages
+            document.getElementById('validationErrors').style.display = 'none';
+            
+            // Client-side validation
+            const fields = this.querySelectorAll('input[required], select[required]');
+            let allErrors = [];
+            
+            console.log('Found', fields.length, 'required fields');
+            
+            fields.forEach(field => {
+                // Get field name from name attribute or id
+                let fieldName = field.name || field.id || 'Field';
+                
+                // Convert to readable format
+                fieldName = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                console.log(`Processing field: ${fieldName}, value: "${field.value}", required: ${field.hasAttribute('required')}`);
+                
+                const errors = validateField(field, field.value, fieldName);
+                console.log(`Errors for ${fieldName}:`, errors);
+                
+                allErrors = allErrors.concat(errors);
+            });
+            
+            console.log('All collected errors:', allErrors);
+            
+            if (allErrors.length > 0) {
+                showValidationErrors(allErrors);
+                return;
+            }
+            
+            alert('Validation passed!');
+        });
+    </script>
+</body>
+</html>

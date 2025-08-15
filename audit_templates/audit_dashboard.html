@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Dashboard - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt me-2"></i>Audit Dashboard</h1>
+    <div>
+        <button class="btn btn-outline-primary" onclick="location.reload()">
+            <i class="fas fa-sync-alt me-1"></i>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <i class="fas fa-list-alt fa-3x mb-3"></i>
+                <h4 id="total-actions">{{ stats.overall.total_actions or 0 }}</h4>
+                <p class="mb-0">Total Actions</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card-success">
+            <div class="card-body text-center">
+                <i class="fas fa-database fa-3x mb-3"></i>
+                <h4 id="tables-tracked">{{ stats.overall.tables_tracked or 0 }}</h4>
+                <p class="mb-0">Tables Tracked</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                <h4 id="records-affected">{{ stats.overall.records_affected or 0 }}</h4>
+                <p class="mb-0">Records Affected</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card-info">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-3x mb-3"></i>
+                <h4 id="recent-activity">{{ stats.recent_activity.count or 0 }}</h4>
+                <p class="mb-0">Last 24 Hours</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie me-2"></i>Actions Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="actionsChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Table Activity</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="tablesChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5><i class="fas fa-history me-2"></i>Recent Activity (Last 50 Actions)</h5>
+            <div>
+                <a href="/logs" class="btn btn-sm btn-primary">
+                    View All Logs
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if recent_logs %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>Table</th>
+                            <th>Record ID</th>
+                            <th>Changes</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_logs[:20] %}
+                        <tr class="audit-log-row {{ log.action.lower().replace('_', '') }}">
+                            <td class="timestamp">{{ log.timestamp }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if log.action == 'INSERT' else 'warning' if log.action == 'UPDATE' else 'danger' if log.action == 'DELETE' else 'info' }}">
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/logs?table={{ log.table_name }}" class="text-decoration-none">
+                                    {{ log.table_name }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="/record/{{ log.table_name }}/{{ log.record_id }}" class="text-decoration-none">
+                                    {{ log.record_id }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if log.changes %}
+                                    <button class="btn btn-sm btn-outline-info" onclick="toggleJSON('changes-{{ loop.index }}')">
+                                        <i class="fas fa-eye me-1"></i>
+                                        {{ log.changes|length }} changes
+                                    </button>
+                                    <div id="changes-{{ loop.index }}" style="display: none;" class="mt-2">
+                                        {% for field, change in log.changes.items() %}
+                                            <div class="change-item mb-1">
+                                                <strong>{{ field }}:</strong>
+                                                <span class="old-value">{{ change.old }}</span>
+                                                →
+                                                <span class="new-value">{{ change.new }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if log.user_info %}
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleJSON('details-{{ loop.index }}')">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Details
+                                    </button>
+                                    <div id="details-{{ loop.index }}" style="display: none;" class="json-viewer mt-2">
+                                        {{ log.user_info|safe if log.user_info is string else log.user_info|tojson(indent=2) }}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if recent_logs|length > 20 %}
+                <div class="text-center mt-3">
+                    <a href="/logs" class="btn btn-primary">
+                        View All {{ recent_logs|length }} Recent Logs
+                    </a>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No audit logs found</h5>
+                <p class="text-muted">Start using the main application to see audit logs here.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>System Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>First Activity:</strong></td>
+                        <td>{{ stats.overall.first_activity or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Last Activity:</strong></td>
+                        <td>{{ stats.overall.last_activity or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database Path:</strong></td>
+                        <td><code>audit_tracker.db</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Application Version:</strong></td>
+                        <td>Ozark Finances v2.2</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/logs" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>
+                        View All Audit Logs
+                    </a>
+                    <a href="/search" class="btn btn-outline-info">
+                        <i class="fas fa-search me-2"></i>
+                        Advanced Search
+                    </a>
+                    <a href="/export?format=json" class="btn btn-outline-success">
+                        <i class="fas fa-download me-2"></i>
+                        Export All Data
+                    </a>
+                    <a href="http://localhost:5000" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt me-2"></i>
+                        Open Main Application
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Chart.js dark mode defaults
+    Chart.defaults.color = '#ffffff';
+    Chart.defaults.borderColor = '#444';
+    Chart.defaults.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    
+    // Actions Chart
+    const actionsCtx = document.getElementById('actionsChart').getContext('2d');
+    const actionsData = {
+        labels: [
+            {% for action in stats.actions %}
+            '{{ action.action }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for action in stats.actions %}
+                {{ action.count }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#28a745', // INSERT
+                '#ffc107', // UPDATE
+                '#dc3545', // DELETE
+                '#17a2b8', // SELECT
+                '#6f42c1', // TRANSACTION_START
+                '#20c997', // TRANSACTION_COMPLETE
+                '#e83e8c'  // TRANSACTION_ERROR
+            ],
+            borderColor: '#444',
+            borderWidth: 1
+        }]
+    };
+    
+    new Chart(actionsCtx, {
+        type: 'doughnut',
+        data: actionsData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#ffffff',
+                        padding: 20
+                    }
+                }
+            }
+        }
+    });
+    
+    // Tables Chart
+    const tablesCtx = document.getElementById('tablesChart').getContext('2d');
+    const tablesData = {
+        labels: [
+            {% for table in stats.tables %}
+            '{{ table.table_name }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Actions Count',
+            data: [
+                {% for table in stats.tables %}
+                {{ table.count }},
+                {% endfor %}
+            ],
+            backgroundColor: 'rgba(0, 123, 255, 0.6)',
+            borderColor: '#007bff',
+            borderWidth: 1
+        }]
+    };
+    
+    new Chart(tablesCtx, {
+        type: 'bar',
+        data: tablesData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: '#444'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: '#444'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

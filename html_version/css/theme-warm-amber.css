@@ -1,0 +1,38 @@
+/* Ozark Finances - Dark Mode Variation 4: Warm Amber */
+
+/* CSS Variables for Warm Amber Dark Theme */
+:root {
+    /* Dark Theme Base Colors - Warm Amber */
+    --bg-dark: #1f1611;
+    --control-dark: #2d2419;
+    --text-light: #faf7f0;
+    --text-muted: #d4c4a8;
+    --border-color: #4a3d2a;
+    --hover-color: #3a2f1f;
+    
+    /* Accent Colors - Warm Focused */
+    --primary-color: #f59e0b;
+    --primary-hover: #d97706;
+    --success-color: #059669;
+    --success-light: #10b981;
+    --danger-color: #dc2626;
+    --danger-light: #ef4444;
+    --warning-color: #ea580c;
+    --info-color: #0284c7;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(212, 196, 168, 0.04);
+    --bg-medium-overlay: rgba(212, 196, 168, 0.08);
+    --bg-strong-overlay: rgba(212, 196, 168, 0.15);
+    
+    /* Border Variants */
+    --border-light: #6a5d4a;
+    --border-medium: #7a6d5a;
+    --border-strong: #8a7d6a;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}
+
+/* All other styles remain the same - just import or copy from the main style.css */

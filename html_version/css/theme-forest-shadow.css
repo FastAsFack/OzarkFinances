@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Forest Shadow */
+
+:root {
+    /* Dark Theme Base Colors - Forest Shadow */
+    --bg-dark: #0d1b0f;
+    --control-dark: #1a2e1c;
+    --text-light: #e8f5e8;
+    --text-muted: #a5d6a5;
+    --border-color: #2e7d32;
+    --hover-color: #1b5e20;
+    
+    /* Accent Colors - Forest Focused */
+    --primary-color: #4caf50;
+    --primary-hover: #388e3c;
+    --success-color: #8bc34a;
+    --success-light: #aed581;
+    --danger-color: #f44336;
+    --danger-light: #ef5350;
+    --warning-color: #ff9800;
+    --info-color: #2196f3;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(76, 175, 80, 0.04);
+    --bg-medium-overlay: rgba(76, 175, 80, 0.08);
+    --bg-strong-overlay: rgba(76, 175, 80, 0.15);
+    
+    /* Border Variants */
+    --border-light: #1b5e20;
+    --border-medium: #2e7d32;
+    --border-strong: #388e3c;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

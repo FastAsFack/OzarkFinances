@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Ozark Finances</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/base-components.css" rel="stylesheet">
+    <link href="css/theme-switcher.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <a class="navbar-brand" href="index.html">
+                    <i class="fas fa-chart-line me-2"></i>Ozark Finances
+                </a>
+                <ul class="navbar-nav">
+                    <li><a class="nav-link active" href="index.html"><i class="fas fa-home me-1"></i>Dashboard</a></li>
+                    <li><a class="nav-link" href="invoices.html"><i class="fas fa-receipt me-1"></i>Invoices</a></li>
+                    <li><a class="nav-link" href="withdraws.html"><i class="fas fa-money-bill-wave me-1"></i>Withdraws</a></li>
+                    <li><a class="nav-link" href="important_info.html"><i class="fas fa-exclamation-circle me-1"></i>Important Info</a></li>
+                    <li><a class="nav-link" href="debt.html"><i class="fas fa-credit-card me-1"></i>Debt</a></li>
+                    <li><a class="nav-link" href="card_variations.html"><i class="fas fa-palette me-1"></i>Card Designs</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        <!-- Page Header -->
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">
+                    <i class="fas fa-chart-line me-2"></i>Financial Dashboard
+                </h1>
+            </div>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="row mb-4">
+            <!-- Invoice Statistics -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Total Invoices</h6>
+                                <h3 class="text-primary mb-0">15</h3>
+                                <small class="text-muted">€12,450.00 total</small>
+                            </div>
+                            <i class="fas fa-receipt fa-2x text-primary"></i>
+                        </div>
+                        <div class="mt-3">
+                            <a href="invoices.html" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i>View Invoices
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdraw Statistics -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Total Withdraws</h6>
+                                <h3 class="text-success mb-0">8</h3>
+                                <small class="text-muted">€3,200.00 total</small>
+                            </div>
+                            <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                        </div>
+                        <div class="mt-3">
+                            <a href="withdraws.html" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i>View Withdraws
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Income -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Net Income</h6>
+                                <h3 class="text-success mb-0">€9,250.00</h3>
+                                <small class="text-muted">After withdraws</small>
+                            </div>
+                            <i class="fas fa-chart-pie fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debt Overview -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Total Debt</h6>
+                                <h3 class="text-danger mb-0">€5,750.00</h3>
+                                <small class="text-muted">3 accounts</small>
+                            </div>
+                            <i class="fas fa-credit-card fa-2x text-danger"></i>
+                        </div>
+                        <div class="mt-3">
+                            <a href="debt.html" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i>View Debt
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row">
+            <!-- Recent Invoices -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>Recent Invoices
+                        </h5>
+                        <a href="invoices.html" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <tbody>
+                                    <tr>
+                                        <td><span class="badge badge-primary">INV-001</span></td>
+                                        <td>25-12-2024</td>
+                                        <td class="text-end text-success">€1,250.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-primary">INV-002</span></td>
+                                        <td>24-12-2024</td>
+                                        <td class="text-end text-success">€875.50</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-primary">INV-003</span></td>
+                                        <td>23-12-2024</td>
+                                        <td class="text-end text-success">€2,100.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-primary">INV-004</span></td>
+                                        <td>22-12-2024</td>
+                                        <td class="text-end text-success">€750.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-primary">INV-005</span></td>
+                                        <td>21-12-2024</td>
+                                        <td class="text-end text-success">€1,450.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Withdraws -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-money-bill-wave me-2"></i>Recent Withdraws
+                        </h5>
+                        <a href="withdraws.html" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <tbody>
+                                    <tr>
+                                        <td>24-12-2024</td>
+                                        <td class="text-end">
+                                            <span class="badge badge-danger">€500.00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>20-12-2024</td>
+                                        <td class="text-end">
+                                            <span class="badge badge-danger">€750.00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>18-12-2024</td>
+                                        <td class="text-end">
+                                            <span class="badge badge-danger">€300.00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>15-12-2024</td>
+                                        <td class="text-end">
+                                            <span class="badge badge-danger">€400.00</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>12-12-2024</td>
+                                        <td class="text-end">
+                                            <span class="badge badge-danger">€250.00</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Overview Chart -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Monthly Financial Overview
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Chart visualization would be implemented here using a JavaScript charting library like Chart.js or D3.js
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <h6 class="text-muted">This Month Income</h6>
+                                <h4 class="text-success">€4,200.00</h4>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted">This Month Withdraws</h6>
+                                <h4 class="text-danger">€1,200.00</h4>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Net This Month</h6>
+                                <h4 class="text-primary">€3,000.00</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/theme-switcher.js"></script>
+</body>
+</html>

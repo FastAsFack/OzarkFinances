@@ -1,0 +1,567 @@
+
+{% extends "base.html" %}
+
+{% block title %}Withdraws - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-money-bill-wave me-2"></i>Withdraw Management
+            <!-- Mobile Add Button -->
+            <button class="btn btn-primary btn-sm float-end show-on-mobile" onclick="showMobileAddWithdraw()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </h1>
+    </div>
+</div>
+
+<!-- Mobile Quick Actions -->
+<div class="row mb-3 show-on-mobile">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm flex-fill" onclick="showMobileAddWithdraw()">
+                        <i class="fas fa-plus me-1"></i>Add
+                    </button>
+                    <button class="btn btn-info btn-sm flex-fill" onclick="showMobileUploadCSV()">
+                        <i class="fas fa-upload me-1"></i>Upload CSV
+                    </button>
+                    <button class="btn btn-success btn-sm flex-fill" onclick="exportWithdraws()">
+                        <i class="fas fa-download me-1"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus me-2"></i>Add Withdraw
+                    <span class="show-on-mobile float-end">
+                        <button class="btn btn-sm btn-outline-info" onclick="toggleMobileAddSection()">
+                            <i class="fas fa-chevron-down" id="mobileToggleIcon"></i>
+                        </button>
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body" id="addWithdrawSection">
+                <div class="row">
+                    <!-- Manual Add Form -->
+                    <div class="col-md-6 mb-3">
+                        <h6 class="mb-3">
+                            <i class="fas fa-keyboard me-2"></i>Manual Entry
+                        </h6>
+                        <form method="POST" action="{{ url_for('add_withdraw') }}" 
+                              data-validate="true" 
+                              id="withdrawManualForm">
+                            <div class="mb-3">
+                                <label for="date" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>Date <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" class="form-control" id="date" name="date" 
+                                       value="{{ today }}" required data-validate="date">
+                                <div class="form-text">Date of the withdraw transaction</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">
+                                    <i class="fas fa-euro-sign me-1"></i>Amount <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input type="text" class="form-control" id="amount" name="amount" 
+                                           placeholder="0,00" required data-validate="amount">
+                                </div>
+                                <div class="form-text">Enter amount (use comma or dot for decimals)</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-comment me-1"></i>Description
+                                </label>
+                                <input type="text" class="form-control" id="description" name="description" 
+                                       placeholder="Transaction description" maxlength="255"
+                                       data-validate="maxLength:255">
+                                <div class="form-text">Optional description for the transaction</div>
+                            </div>
+                            <button type="submit" class="btn btn-custom w-100">
+                                <i class="fas fa-plus me-1"></i>Add Withdraw
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- CSV Upload -->
+                    <div class="col-md-6">
+                        <h6 class="mb-3">
+                            <i class="fas fa-file-csv me-2"></i>CSV Upload
+                        </h6>
+                        <form method="POST" action="{{ url_for('upload_withdraws') }}" 
+                              enctype="multipart/form-data" 
+                              data-validate="true" 
+                              id="withdrawCSVForm">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">
+                                    <i class="fas fa-file-csv me-1"></i>Upload CSV File <span class="text-danger">*</span>
+                                </label>
+                                <input type="file" class="form-control" id="file" name="file" 
+                                       accept=".csv" required>
+                                <div class="form-text">Select a CSV file to upload withdraw data</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <strong>Supported formats:</strong><br>
+                                    • <strong>Simple CSV:</strong> date,amount,description<br>
+                                    • <strong>Knab export:</strong> Full bank export files<br>
+                                    <i class="fas fa-info-circle me-1"></i>European & US decimal formats supported
+                                </small>
+                            </div>
+                            <button type="submit" class="btn btn-custom w-100">
+                                <i class="fas fa-upload me-1"></i>Upload & Process CSV
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Withdraw List and Info -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Withdraw History ({{ pagination.total if pagination else withdraws|length }} entries)
+                </h5>
+                <div class="d-flex align-items-center">
+                    <!-- Quick search -->
+                    <input type="text" id="withdrawSearch" class="form-control form-control-sm me-2" 
+                           placeholder="Search..." style="width: 150px;">
+                    <small class="text-muted">
+                        {% if pagination %}
+                            Page {{ pagination.page }} of {{ pagination.total_pages }}
+                        {% else %}
+                            All entries
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Desktop Table View -->
+                <div class="withdraw-history-container desktop-table-view" style="max-height: 400px; overflow-y: auto;">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped mb-0">
+                            <thead class="sticky-top">
+                                <tr>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);">
+                                        <a href="{{ url_for('withdraws', sort_by='date', sort_dir=('desc' if sort_by == 'date' and sort_dir == 'asc' else 'asc'), page=pagination.page if pagination else 1) }}" 
+                                           class="text-light text-decoration-none sortable-header">
+                                            Date
+                                            {% if sort_by == 'date' %}
+                                                {% if sort_dir == 'asc' %}
+                                                    <i class="fas fa-sort-up ms-1"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort-down ms-1"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-sort ms-1 text-muted"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);">
+                                        <a href="{{ url_for('withdraws', sort_by='amount', sort_dir=('desc' if sort_by == 'amount' and sort_dir == 'asc' else 'asc'), page=pagination.page if pagination else 1) }}" 
+                                           class="text-light text-decoration-none sortable-header">
+                                            Amount
+                                            {% if sort_by == 'amount' %}
+                                                {% if sort_dir == 'asc' %}
+                                                    <i class="fas fa-sort-up ms-1"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort-down ms-1"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-sort ms-1 text-muted"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);" class="mobile-hide">Description</th>
+                                    <th style="background-color: var(--control-dark); border-bottom: 2px solid var(--border-color);">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for withdraw in withdraws %}
+                                <tr>
+                                    <td>{{ withdraw.Date }}</td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ format_euro(withdraw.Amount) }}</span>
+                                    </td>
+                                    <td class="mobile-hide">
+                                        <span class="text-muted">{{ withdraw.Description or 'No description' }}</span>
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('delete_withdraw', row_id=loop.index) }}" 
+                                              style="display: inline;" id="deleteWithdrawForm{{ loop.index }}">
+                                            <input type="hidden" name="date" value="{{ withdraw.Date }}">
+                                            <input type="hidden" name="amount" value="{{ withdraw.Amount }}">
+                                            <input type="hidden" name="description" value="{{ withdraw.Description or '' }}">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete entry"
+                                                    data-index="{{ loop.index }}" 
+                                                    data-date="{{ withdraw.Date }}" 
+                                                    data-amount="{{ withdraw.Amount }}"
+                                                    onclick="confirmDeleteWithdrawFromButton(this)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                        No withdraw entries found
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="mobile-card-view show-on-mobile">
+                    {% for withdraw in withdraws %}
+                    <div class="mobile-withdraw-card" data-withdraw-index="{{ loop.index }}">
+                        <div class="mobile-card-header">
+                            <div class="mobile-card-title">
+                                <i class="fas fa-money-bill-wave me-2"></i>{{ withdraw.Date }}
+                            </div>
+                            <div class="mobile-card-badge">
+                                <span class="badge bg-danger">{{ format_euro(withdraw.Amount) }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mobile-card-details">
+                            <div class="mobile-card-detail">
+                                <div class="mobile-card-label">Description</div>
+                                <div class="mobile-card-value">
+                                    {{ withdraw.Description or 'No description provided' }}
+                                </div>
+                            </div>
+                            <div class="mobile-card-detail">
+                                <div class="mobile-card-label">Amount</div>
+                                <div class="mobile-card-value">
+                                    <strong>{{ format_euro(withdraw.Amount) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mobile-card-actions">
+                            <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#editWithdrawModal" 
+                                    data-index="{{ loop.index }}" data-date="{{ withdraw.Date }}" 
+                                    data-amount="{{ withdraw.Amount }}" data-description="{{ withdraw.Description or '' }}">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            <form method="POST" action="{{ url_for('delete_withdraw', row_id=loop.index) }}" 
+                                  style="display: inline;" id="deleteWithdrawFormMobile{{ loop.index }}">
+                                <input type="hidden" name="date" value="{{ withdraw.Date }}">
+                                <input type="hidden" name="amount" value="{{ withdraw.Amount }}">
+                                <input type="hidden" name="description" value="{{ withdraw.Description or '' }}">
+                                <button type="button" class="btn btn-danger btn-sm"
+                                        data-index="{{ loop.index }}" 
+                                        data-date="{{ withdraw.Date }}" 
+                                        data-amount="{{ withdraw.Amount }}"
+                                        data-mobile="true"
+                                        onclick="confirmDeleteWithdrawFromButton(this)">
+                                    <i class="fas fa-trash me-1"></i>Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3"></i><br>
+                        <h5>No withdraws found</h5>
+                        <p>No withdraw entries have been added yet.</p>
+                        <button class="btn btn-primary" onclick="showMobileAddWithdraw()">
+                            <i class="fas fa-plus me-1"></i>Add First Withdraw
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if withdraws|length > 10 %}
+                <div class="card-footer text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Scroll up to see older entries
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if pagination.total_pages > 1 %}
+        <div class="mt-3">
+            <nav aria-label="Withdraw history pagination">
+                <ul class="pagination pagination-sm justify-content-center">
+                    <!-- Previous button -->
+                    <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+                        <a class="page-link" href="{{ url_for('withdraws', page=pagination.prev_num, sort_by=sort_by, sort_dir=sort_dir) if pagination.has_prev else '#' }}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                    
+                    <!-- Page numbers -->
+                    {% set start_page = [1, pagination.page - 2]|max %}
+                    {% set end_page = [pagination.total_pages, pagination.page + 2]|min %}
+                    
+                    {% if start_page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('withdraws', page=1, sort_by=sort_by, sort_dir=sort_dir) }}">1</a>
+                        </li>
+                        {% if start_page > 2 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% for page_num in range(start_page, end_page + 1) %}
+                        <li class="page-item {{ 'active' if page_num == pagination.page }}">
+                            <a class="page-link" href="{{ url_for('withdraws', page=page_num, sort_by=sort_by, sort_dir=sort_dir) }}">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                    
+                    {% if end_page < pagination.total_pages %}
+                        {% if end_page < pagination.total_pages - 1 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('withdraws', page=pagination.total_pages, sort_by=sort_by, sort_dir=sort_dir) }}">{{ pagination.total_pages }}</a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- Next button -->
+                    <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+                        <a class="page-link" href="{{ url_for('withdraws', page=pagination.next_num, sort_by=sort_by, sort_dir=sort_dir) if pagination.has_next else '#' }}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Page info -->
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Showing entries {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to 
+                    {{ [pagination.page * pagination.per_page, pagination.total]|min }} of {{ pagination.total }} total
+                </small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card totals-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong>Total Rows:</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="badge bg-primary fs-6">{{ total_rows }}</span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong>Total Amount:</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="badge bg-danger fs-6">{{ format_euro(total_amount) }}</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Recent Date:</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="badge bg-info fs-6">{{ recent_date or 'None' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Set today's date as default
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').value = today;
+    
+    // Add search functionality
+    const searchInput = document.getElementById('withdrawSearch');
+    const tableRows = document.querySelectorAll('.withdraw-history-container tbody tr');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        tableRows.forEach(row => {
+            const date = row.cells[0]?.textContent.toLowerCase() || '';
+            const amount = row.cells[1]?.textContent.toLowerCase() || '';
+            const description = row.cells[2]?.textContent.toLowerCase() || '';
+            
+            if (date.includes(searchTerm) || amount.includes(searchTerm) || description.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Update visible count
+        const visibleRows = Array.from(tableRows).filter(row => row.style.display !== 'none').length;
+        const emptyRow = document.querySelector('tbody tr td[colspan="4"]');
+        
+        if (visibleRows === 0 && !emptyRow) {
+            // Show "no results" message if no rows match and there's no empty state
+            if (searchTerm.trim() !== '') {
+                const tbody = document.querySelector('.withdraw-history-container tbody');
+                const noResultsRow = document.createElement('tr');
+                noResultsRow.id = 'no-results-row';
+                noResultsRow.innerHTML = `
+                    <td colspan="4" class="text-center text-muted py-4">
+                        <i class="fas fa-search fa-2x mb-2"></i><br>
+                        No entries match your search: "${searchTerm}"
+                    </td>
+                `;
+                tbody.appendChild(noResultsRow);
+            }
+        } else {
+            // Remove "no results" message
+            const noResultsRow = document.getElementById('no-results-row');
+            if (noResultsRow) {
+                noResultsRow.remove();
+            }
+        }
+    });
+});
+
+// Smooth scroll to top when pagination links are clicked
+document.querySelectorAll('.pagination .page-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (this.getAttribute('href') !== '#') {
+            // Small delay to allow page load, then scroll
+            setTimeout(() => {
+                document.querySelector('.withdraw-history-container').scrollTop = 0;
+            }, 100);
+        }
+    });
+});
+
+// Mobile-specific functionality for withdraws page
+if (window.innerWidth <= 768) {
+    initWithdrawMobileFeatures();
+}
+
+function initWithdrawMobileFeatures() {
+    // Collapse add section by default on mobile
+    const addSection = document.getElementById('addWithdrawSection');
+    if (addSection) {
+        addSection.style.maxHeight = '0';
+        addSection.style.overflow = 'hidden';
+        addSection.style.transition = 'max-height 0.3s ease';
+    }
+}
+
+function showMobileAddWithdraw() {
+    // Scroll to and expand the add section
+    const addSection = document.getElementById('addWithdrawSection');
+    if (addSection) {
+        addSection.style.maxHeight = '500px';
+        addSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function showMobileUploadCSV() {
+    // Focus on CSV upload section
+    const csvInput = document.getElementById('file');
+    if (csvInput) {
+        csvInput.scrollIntoView({ behavior: 'smooth' });
+        csvInput.focus();
+    }
+}
+
+function toggleMobileAddSection() {
+    const addSection = document.getElementById('addWithdrawSection');
+    const icon = document.getElementById('mobileToggleIcon');
+    
+    if (addSection && icon) {
+        const isExpanded = addSection.style.maxHeight !== '0px' && addSection.style.maxHeight !== '';
+        
+        if (isExpanded) {
+            addSection.style.maxHeight = '0';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        } else {
+            addSection.style.maxHeight = '500px';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        }
+    }
+}
+
+function exportWithdraws() {
+    // Export functionality - to be implemented
+    if (typeof showMobileToast === 'function') {
+        showMobileToast('Export functionality will be implemented in future update', 'info');
+    } else {
+        alert('Export functionality will be implemented in future update');
+    }
+}
+
+function confirmDeleteWithdraw(index, date, amount, isMobile = false) {
+    const formId = isMobile ? 'deleteWithdrawFormMobile' + index : 'deleteWithdrawForm' + index;
+    
+    showConfirmation(
+        'Delete Withdraw Entry',
+        `Are you sure you want to delete this withdraw entry?<br><br><strong>Date:</strong> ${date}<br><strong>Amount:</strong> ${amount}`,
+        function() {
+            // User confirmed - submit the form
+            document.getElementById(formId).submit();
+        }
+    );
+}
+
+function confirmDeleteWithdrawFromButton(button) {
+    const index = button.getAttribute('data-index');
+    const date = button.getAttribute('data-date');
+    const amount = button.getAttribute('data-amount');
+    const isMobile = button.getAttribute('data-mobile') === 'true';
+    
+    const formId = isMobile ? 'deleteWithdrawFormMobile' + index : 'deleteWithdrawForm' + index;
+    
+    showConfirmation(
+        'Delete Withdraw Entry',
+        `Are you sure you want to delete this withdraw entry?<br><br><strong>Date:</strong> ${date}<br><strong>Amount:</strong> €${amount}`,
+        function() {
+            // User confirmed - submit the form
+            document.getElementById(formId).submit();
+        }
+    );
+}
+</script>
+{% endblock %}

@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Invoice {{ invoice.InvoiceID }} - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Invoice {{ invoice.InvoiceID }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Validation Error Container -->
+                <div id="validationErrors" class="alert alert-danger" style="display: none;">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:</h6>
+                    <ul id="errorList"></ul>
+                </div>
+
+                <!-- Success Message Container -->
+                <div id="successMessage" class="alert alert-success" style="display: none;">
+                    <i class="fas fa-check-circle me-2"></i><span id="successText"></span>
+                </div>
+
+                <form id="editInvoiceForm" method="POST">
+                    <!-- Invoice ID (Read-only) -->
+                    <div class="mb-3">
+                        <label for="invoice_id" class="form-label">
+                            <i class="fas fa-hashtag me-1"></i>Invoice ID
+                        </label>
+                        <input type="text" class="form-control" id="invoice_id" 
+                               value="{{ invoice.InvoiceID }}" readonly>
+                        <div class="form-text">Invoice ID cannot be changed</div>
+                    </div>
+
+                    <!-- Invoice Date -->
+                    <div class="mb-3">
+                        <label for="invoice_date" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>Invoice Date <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" id="invoice_date" name="invoice_date" 
+                               value="{{ invoice.InvoiceDate | date_to_html_input }}" required>
+                        <div class="form-text">Date when the invoice was issued</div>
+                    </div>
+
+                    <!-- Amount Excluding BTW -->
+                    <div class="mb-3">
+                        <label for="amount_excl" class="form-label">
+                            <i class="fas fa-euro-sign me-1"></i>Amount Excluding BTW <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">€</span>
+                            <input type="text" class="form-control" id="amount_excl" name="amount_excl" 
+                                   value="{{ '%.2f'|format(invoice.Excl) }}" required
+                                   placeholder="0.00" pattern="[0-9]+([,.][0-9]{1,2})?"
+                                   oninput="calculateBTW()">
+                        </div>
+                        <div class="form-text">Use comma (,) or dot (.) for decimal separator</div>
+                    </div>
+
+                    <!-- BTW Amount -->
+                    <div class="mb-3">
+                        <label for="amount_btw" class="form-label">
+                            <i class="fas fa-percentage me-1"></i>BTW Amount (21%) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">€</span>
+                            <input type="text" class="form-control" id="amount_btw" name="amount_btw" 
+                                   value="{{ '%.2f'|format(invoice.BTW) }}" required
+                                   placeholder="0.00" pattern="[0-9]+([,.][0-9]{1,2})?"
+                                   oninput="calculateTotal()">
+                        </div>
+                        <div class="form-text">BTW (VAT) at 21% rate</div>
+                    </div>
+
+                    <!-- Amount Including BTW -->
+                    <div class="mb-3">
+                        <label for="amount_incl" class="form-label">
+                            <i class="fas fa-calculator me-1"></i>Total Amount Including BTW <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">€</span>
+                            <input type="text" class="form-control" id="amount_incl" name="amount_incl" 
+                                   value="{{ '%.2f'|format(invoice.Incl) }}" required
+                                   placeholder="0.00" pattern="[0-9]+([,.][0-9]{1,2})?">
+                        </div>
+                        <div class="form-text">Total amount including BTW</div>
+                    </div>
+
+                    <!-- Payment Status -->
+                    <div class="mb-3">
+                        <label for="payment_status" class="form-label">
+                            <i class="fas fa-credit-card me-1"></i>Payment Status
+                        </label>
+                        <select class="form-select" id="payment_status" name="payment_status">
+                            <option value="pending" {{ 'selected' if invoice.payment_status == 'pending' else '' }}>
+                                Pending
+                            </option>
+                            <option value="paid" {{ 'selected' if invoice.payment_status == 'paid' else '' }}>
+                                Paid
+                            </option>
+                            <option value="overdue" {{ 'selected' if invoice.payment_status == 'overdue' else '' }}>
+                                Overdue
+                            </option>
+                            <option value="draft" {{ 'selected' if invoice.payment_status == 'draft' else '' }}>
+                                Draft
+                            </option>
+                        </select>
+                        <div class="form-text">Current payment status of the invoice</div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('invoices') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-calculation functions
+function calculateBTW() {
+    const exclField = document.getElementById('amount_excl');
+    const btwField = document.getElementById('amount_btw');
+    
+    if (exclField.value) {
+        const excl = parseFloat(exclField.value.replace(',', '.'));
+        if (!isNaN(excl)) {
+            const btw = Math.round(excl * 0.21 * 100) / 100;
+            btwField.value = btw.toFixed(2);
+            calculateTotal();
+        }
+    }
+}
+
+function calculateTotal() {
+    const exclField = document.getElementById('amount_excl');
+    const btwField = document.getElementById('amount_btw');
+    const inclField = document.getElementById('amount_incl');
+    
+    if (exclField.value && btwField.value) {
+        const excl = parseFloat(exclField.value.replace(',', '.'));
+        const btw = parseFloat(btwField.value.replace(',', '.'));
+        
+        if (!isNaN(excl) && !isNaN(btw)) {
+            const incl = Math.round((excl + btw) * 100) / 100;
+            inclField.value = incl.toFixed(2);
+        }
+    }
+}
+
+// Real-time validation
+function validateField(field, value, fieldName) {
+    const errors = [];
+    
+    if (field.hasAttribute('required') && (!value || value.trim() === '')) {
+        errors.push(`${fieldName} is required`);
+    }
+    
+    if (field.type === 'date' && value) {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) {
+            errors.push(`Invalid ${fieldName.toLowerCase()} format`);
+        }
+    }
+    
+    if (field.pattern && value && !new RegExp(field.pattern).test(value)) {
+        errors.push(`Invalid ${fieldName.toLowerCase()} format`);
+    }
+    
+    // Amount validation
+    if (field.name && field.name.includes('amount') && value) {
+        const numValue = parseFloat(value.replace(',', '.'));
+        if (isNaN(numValue) || numValue < 0) {
+            errors.push(`${fieldName} must be a valid positive number`);
+        }
+    }
+    
+    return errors;
+}
+
+function showValidationErrors(errors) {
+    const errorContainer = document.getElementById('validationErrors');
+    const errorList = document.getElementById('errorList');
+    
+    if (errors.length > 0) {
+        errorList.innerHTML = errors.map(error => `<li>${error}</li>`).join('');
+        errorContainer.style.display = 'block';
+        errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        errorContainer.style.display = 'none';
+    }
+}
+
+function showSuccessMessage(message) {
+    const successContainer = document.getElementById('successMessage');
+    const successText = document.getElementById('successText');
+    
+    successText.textContent = message;
+    successContainer.style.display = 'block';
+    successContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Hide after 5 seconds
+    setTimeout(() => {
+        successContainer.style.display = 'none';
+    }, 5000);
+}
+
+// Form submission with AJAX
+document.getElementById('editInvoiceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Hide previous messages
+    document.getElementById('validationErrors').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'none';
+    
+    // Get form data
+    const formData = new FormData(this);
+    
+    // Simple client-side validation
+    const requiredFields = [
+        { field: document.getElementById('invoice_date'), name: 'Invoice Date' },
+        { field: document.getElementById('amount_excl'), name: 'Amount Excluding BTW' },
+        { field: document.getElementById('amount_btw'), name: 'BTW Amount' },
+        { field: document.getElementById('amount_incl'), name: 'Amount Including BTW' }
+    ];
+    
+    let allErrors = [];
+    
+    requiredFields.forEach(item => {
+        const field = item.field;
+        const fieldName = item.name;
+        const value = field.value.trim();
+        
+        if (!value) {
+            allErrors.push(`${fieldName} is required`);
+        } else if (field.type === 'date') {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) {
+                allErrors.push(`Invalid ${fieldName.toLowerCase()} format`);
+            }
+        } else if (field.name.includes('amount')) {
+            const numValue = parseFloat(value.replace(',', '.'));
+            if (isNaN(numValue) || numValue < 0) {
+                allErrors.push(`${fieldName} must be a valid positive number`);
+            }
+        }
+    });
+    
+    if (allErrors.length > 0) {
+        showValidationErrors(allErrors);
+        return;
+    }
+    
+    // Submit form
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showSuccessMessage(data.message);
+            // Optionally redirect after a delay
+            setTimeout(() => {
+                window.location.href = '{{ url_for("invoices") }}';
+            }, 2000);
+        } else {
+            // Ensure we have an array of strings for errors
+            let errors = [];
+            if (data.errors && Array.isArray(data.errors)) {
+                errors = data.errors.filter(error => typeof error === 'string' && error.trim() !== '');
+            } else if (data.message) {
+                errors = [data.message];
+            } else {
+                errors = ['An error occurred while saving the invoice.'];
+            }
+            showValidationErrors(errors);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showValidationErrors(['An error occurred while saving the invoice. Please try again.']);
+    });
+});
+
+// Real-time field validation
+document.querySelectorAll('input, select').forEach(field => {
+    field.addEventListener('blur', function() {
+        const fieldName = this.previousElementSibling?.textContent?.replace('*', '').trim() || 'Field';
+        const errors = validateField(this, this.value, fieldName);
+        
+        // Remove existing field-specific errors
+        const existingFeedback = this.parentNode.querySelector('.invalid-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+        this.classList.remove('is-invalid', 'is-valid');
+        
+        if (errors.length > 0) {
+            this.classList.add('is-invalid');
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = errors[0];
+            this.parentNode.appendChild(feedback);
+        } else if (this.value) {
+            this.classList.add('is-valid');
+        }
+    });
+});
+
+</script>
+{% endblock %}

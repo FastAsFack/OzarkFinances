@@ -1,0 +1,38 @@
+/* Ozark Finances - Dark Mode Variation 5: Slate Gray */
+
+/* CSS Variables for Slate Gray Dark Theme */
+:root {
+    /* Dark Theme Base Colors - Slate Gray */
+    --bg-dark: #0f172a;
+    --control-dark: #1e293b;
+    --text-light: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --hover-color: #2d3748;
+    
+    /* Accent Colors - Neutral Focused */
+    --primary-color: #0ea5e9;
+    --primary-hover: #0284c7;
+    --success-color: #22c55e;
+    --success-light: #4ade80;
+    --danger-color: #ef4444;
+    --danger-light: #f87171;
+    --warning-color: #eab308;
+    --info-color: #06b6d4;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(148, 163, 184, 0.03);
+    --bg-medium-overlay: rgba(148, 163, 184, 0.06);
+    --bg-strong-overlay: rgba(148, 163, 184, 0.12);
+    
+    /* Border Variants */
+    --border-light: #475569;
+    --border-medium: #64748b;
+    --border-strong: #94a3b8;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}
+
+/* All other styles remain the same - just import or copy from the main style.css */

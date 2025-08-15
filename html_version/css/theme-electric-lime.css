@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Electric Lime */
+
+:root {
+    /* Dark Theme Base Colors - Electric Lime */
+    --bg-dark: #0a1a0a;
+    --control-dark: #1a2d1a;
+    --text-light: #f1f8e9;
+    --text-muted: #aed581;
+    --border-color: #689f38;
+    --hover-color: #33691e;
+    
+    /* Accent Colors - Electric Lime Focused */
+    --primary-color: #8bc34a;
+    --primary-hover: #689f38;
+    --success-color: #4caf50;
+    --success-light: #66bb6a;
+    --danger-color: #f44336;
+    --danger-light: #ef5350;
+    --warning-color: #ffb74d;
+    --info-color: #00bcd4;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(139, 195, 74, 0.04);
+    --bg-medium-overlay: rgba(139, 195, 74, 0.08);
+    --bg-strong-overlay: rgba(139, 195, 74, 0.15);
+    
+    /* Border Variants */
+    --border-light: #33691e;
+    --border-medium: #689f38;
+    --border-strong: #8bc34a;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

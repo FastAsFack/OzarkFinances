@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}{{ table_name }} #{{ record_id }} History - Audit Viewer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>
+            <i class="fas fa-history me-2"></i>
+            Record History
+        </h1>
+        <p class="text-muted mb-0">
+            <strong>{{ table_name }}</strong> → Record ID: <code>{{ record_id }}</code>
+        </p>
+    </div>
+    <div>
+        <a href="/logs?table={{ table_name }}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-table me-1"></i>
+            All {{ table_name }}
+        </a>
+        <a href="/logs" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back to Logs
+        </a>
+    </div>
+</div>
+
+{% if history %}
+    <!-- Summary Card -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-primary">{{ history|length }}</h4>
+                    <p class="mb-0">Total Actions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-success">{{ history|selectattr('action', 'equalto', 'INSERT')|list|length }}</h4>
+                    <p class="mb-0">Inserts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-warning">{{ history|selectattr('action', 'equalto', 'UPDATE')|list|length }}</h4>
+                    <p class="mb-0">Updates</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-danger">{{ history|selectattr('action', 'equalto', 'DELETE')|list|length }}</h4>
+                    <p class="mb-0">Deletes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Timeline -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-timeline me-2"></i>Action Timeline</h5>
+        </div>
+        <div class="card-body">
+            <div class="timeline">
+                {% for log in history %}
+                <div class="timeline-item mb-4">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="timeline-marker">
+                                <span class="badge bg-{{ 'success' if log.action == 'INSERT' else 'warning' if log.action == 'UPDATE' else 'danger' if log.action == 'DELETE' else 'info' if log.action == 'SELECT' else 'primary' if 'TRANSACTION' in log.action else 'secondary' }} p-3">
+                                    {% if log.action == 'INSERT' %}
+                                        <i class="fas fa-plus"></i>
+                                    {% elif log.action == 'UPDATE' %}
+                                        <i class="fas fa-edit"></i>
+                                    {% elif log.action == 'DELETE' %}
+                                        <i class="fas fa-trash"></i>
+                                    {% elif log.action == 'SELECT' %}
+                                        <i class="fas fa-eye"></i>
+                                    {% elif 'TRANSACTION' in log.action %}
+                                        <i class="fas fa-cogs"></i>
+                                    {% else %}
+                                        <i class="fas fa-question"></i>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="timeline-time text-center mt-2">
+                                <small class="text-muted timestamp">
+                                    {{ log.timestamp[:10] }}<br>
+                                    {{ log.timestamp[11:19] }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-10">
+                            <div class="card border-start border-4 border-{{ 'success' if log.action == 'INSERT' else 'warning' if log.action == 'UPDATE' else 'danger' if log.action == 'DELETE' else 'info' if log.action == 'SELECT' else 'primary' if 'TRANSACTION' in log.action else 'secondary' }}">
+                                <div class="card-header bg-light">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <h6 class="mb-0">
+                                                <strong>{{ log.action }}</strong> Action
+                                                <small class="text-muted ms-2">#{{ log.id }}</small>
+                                            </h6>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('{{ log.id }}')">
+                                                <i class="fas fa-copy me-1"></i>
+                                                Copy ID
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <!-- Changes Section -->
+                                    {% if log.changes %}
+                                        <h6><i class="fas fa-exchange-alt me-2"></i>Field Changes</h6>
+                                        <div class="row">
+                                            {% for field, change in log.changes.items() %}
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="card bg-light">
+                                                        <div class="card-body p-3">
+                                                            <h6 class="card-title">{{ field }}</h6>
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="flex-grow-1">
+                                                                    <div class="old-value p-2 rounded mb-2">
+                                                                        <small class="text-muted d-block">Old Value:</small>
+                                                                        <code>{{ change.old if change.old else 'NULL' }}</code>
+                                                                    </div>
+                                                                    <div class="new-value p-2 rounded">
+                                                                        <small class="text-muted d-block">New Value:</small>
+                                                                        <code>{{ change.new if change.new else 'NULL' }}</code>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="ms-2">
+                                                                    <i class="fas fa-arrow-down text-muted"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Full Data Sections -->
+                                    <div class="row">
+                                        {% if log.old_values %}
+                                            <div class="col-md-6 mb-3">
+                                                <h6><i class="fas fa-history me-2"></i>Old Values</h6>
+                                                <button class="btn btn-sm btn-outline-warning mb-2" onclick="toggleJSON('old-values-{{ loop.index }}')">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Show/Hide Old Values
+                                                </button>
+                                                <div id="old-values-{{ loop.index }}" style="display: none;" class="json-viewer">
+                                                    {{ log.old_values|safe if log.old_values is string else log.old_values|tojson(indent=2) }}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if log.new_values %}
+                                            <div class="col-md-6 mb-3">
+                                                <h6><i class="fas fa-plus me-2"></i>New Values</h6>
+                                                <button class="btn btn-sm btn-outline-success mb-2" onclick="toggleJSON('new-values-{{ loop.index }}')">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Show/Hide New Values
+                                                </button>
+                                                <div id="new-values-{{ loop.index }}" style="display: none;" class="json-viewer">
+                                                    {{ log.new_values|safe if log.new_values is string else log.new_values|tojson(indent=2) }}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Technical Details -->
+                                    <div class="row mt-3">
+                                        {% if log.user_info %}
+                                            <div class="col-md-4">
+                                                <h6><i class="fas fa-user me-2"></i>User Information</h6>
+                                                <button class="btn btn-sm btn-outline-info mb-2" onclick="toggleJSON('user-info-{{ loop.index }}')">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Show/Hide User Info
+                                                </button>
+                                                <div id="user-info-{{ loop.index }}" style="display: none;" class="json-viewer">
+                                                    {{ log.user_info|safe if log.user_info is string else log.user_info|tojson(indent=2) }}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if log.ip_address or log.user_agent %}
+                                            <div class="col-md-4">
+                                                <h6><i class="fas fa-desktop me-2"></i>Technical Details</h6>
+                                                <div class="small">
+                                                    {% if log.ip_address %}
+                                                        <p><strong>IP Address:</strong> <code>{{ log.ip_address }}</code></p>
+                                                    {% endif %}
+                                                    {% if log.session_id %}
+                                                        <p><strong>Session ID:</strong> <code>{{ log.session_id[:20] }}...</code></p>
+                                                    {% endif %}
+                                                    {% if log.user_agent %}
+                                                        <p><strong>User Agent:</strong></p>
+                                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleJSON('user-agent-{{ loop.index }}')">
+                                                            <i class="fas fa-eye me-1"></i>
+                                                            Show User Agent
+                                                        </button>
+                                                        <div id="user-agent-{{ loop.index }}" style="display: none;" class="mt-2">
+                                                            <small><code>{{ log.user_agent }}</code></small>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-clock me-2"></i>Timestamp Details</h6>
+                                            <div class="small">
+                                                <p><strong>Full Timestamp:</strong><br><code>{{ log.timestamp }}</code></p>
+                                                <p><strong>Database Created:</strong><br><code>{{ log.created_at }}</code></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No history found</h5>
+            <p class="text-muted">
+                No audit logs found for <strong>{{ table_name }}</strong> record <code>{{ record_id }}</code>.
+            </p>
+            <a href="/logs?table={{ table_name }}" class="btn btn-outline-primary">
+                <i class="fas fa-table me-1"></i>
+                View All {{ table_name }} Logs
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+    }
+    
+    .timeline-item {
+        position: relative;
+    }
+    
+    .timeline-marker {
+        text-align: center;
+    }
+    
+    .timeline-time {
+        font-family: 'Courier New', monospace;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 95px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+    
+    .timeline-item:not(:last-child) .timeline-marker::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -20px;
+        width: 2px;
+        height: 20px;
+        background: #dee2e6;
+        transform: translateX(-50%);
+    }
+    
+    @media (max-width: 768px) {
+        .timeline::before {
+            left: 30px;
+        }
+        
+        .timeline-item:not(:last-child) .timeline-marker::after {
+            left: 30px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Expand all changes by default for single record view
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show first 3 change sets by default
+        for (let i = 1; i <= 3; i++) {
+            const element = document.getElementById('old-values-' + i);
+            if (element) {
+                element.style.display = 'block';
+            }
+            const newElement = document.getElementById('new-values-' + i);
+            if (newElement) {
+                newElement.style.display = 'block';
+            }
+        }
+    });
+</script>
+{% endblock %}

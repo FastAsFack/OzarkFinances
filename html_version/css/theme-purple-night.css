@@ -1,0 +1,38 @@
+/* Ozark Finances - Dark Mode Variation 2: Purple Night */
+
+/* CSS Variables for Purple Night Dark Theme */
+:root {
+    /* Dark Theme Base Colors - Purple Night */
+    --bg-dark: #1a0d26;
+    --control-dark: #2d1b3d;
+    --text-light: #f0e6ff;
+    --text-muted: #c4a7e7;
+    --border-color: #4c3a5e;
+    --hover-color: #3d2951;
+    
+    /* Accent Colors - Purple Focused */
+    --primary-color: #8b5cf6;
+    --primary-hover: #7c3aed;
+    --success-color: #10b981;
+    --success-light: #34d399;
+    --danger-color: #f43f5e;
+    --danger-light: #fb7185;
+    --warning-color: #f59e0b;
+    --info-color: #06b6d4;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(199, 167, 231, 0.04);
+    --bg-medium-overlay: rgba(199, 167, 231, 0.08);
+    --bg-strong-overlay: rgba(199, 167, 231, 0.15);
+    
+    /* Border Variants */
+    --border-light: #6b4c7a;
+    --border-medium: #7b5c8a;
+    --border-strong: #8b6c9a;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}
+
+/* All other styles remain the same - just import or copy from the main style.css */

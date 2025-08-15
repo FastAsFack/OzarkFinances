@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Steel Gray */
+
+:root {
+    /* Dark Theme Base Colors - Steel Gray */
+    --bg-dark: #12151a;
+    --control-dark: #1e2328;
+    --text-light: #e8eaf0;
+    --text-muted: #9ca3af;
+    --border-color: #4b5563;
+    --hover-color: #374151;
+    
+    /* Accent Colors - Steel Focused */
+    --primary-color: #6b7280;
+    --primary-hover: #4b5563;
+    --success-color: #10b981;
+    --success-light: #34d399;
+    --danger-color: #ef4444;
+    --danger-light: #f87171;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(107, 114, 128, 0.04);
+    --bg-medium-overlay: rgba(107, 114, 128, 0.08);
+    --bg-strong-overlay: rgba(107, 114, 128, 0.15);
+    
+    /* Border Variants */
+    --border-light: #4b5563;
+    --border-medium: #6b7280;
+    --border-strong: #9ca3af;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

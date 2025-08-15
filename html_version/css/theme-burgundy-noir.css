@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Burgundy Noir */
+
+:root {
+    /* Dark Theme Base Colors - Burgundy Noir */
+    --bg-dark: #1a0f12;
+    --control-dark: #2d1b20;
+    --text-light: #f2e6e9;
+    --text-muted: #d1c1c5;
+    --border-color: #8e4c63;
+    --hover-color: #6d2845;
+    
+    /* Accent Colors - Burgundy Focused */
+    --primary-color: #ad5470;
+    --primary-hover: #8e4c63;
+    --success-color: #66bb6a;
+    --success-light: #81c784;
+    --danger-color: #e91e63;
+    --danger-light: #f06292;
+    --warning-color: #ffb74d;
+    --info-color: #64b5f6;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(173, 84, 112, 0.04);
+    --bg-medium-overlay: rgba(173, 84, 112, 0.08);
+    --bg-strong-overlay: rgba(173, 84, 112, 0.15);
+    
+    /* Border Variants */
+    --border-light: #6d2845;
+    --border-medium: #8e4c63;
+    --border-strong: #ad5470;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}

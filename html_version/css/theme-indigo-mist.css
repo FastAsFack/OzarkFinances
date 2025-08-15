@@ -1,0 +1,35 @@
+/* Ozark Finances - Dark Mode Variation: Indigo Mist */
+
+:root {
+    /* Dark Theme Base Colors - Indigo Mist */
+    --bg-dark: #0d0f1a;
+    --control-dark: #1a1f2e;
+    --text-light: #e8eaf6;
+    --text-muted: #9fa8da;
+    --border-color: #3f51b5;
+    --hover-color: #283593;
+    
+    /* Accent Colors - Indigo Focused */
+    --primary-color: #5c6bc0;
+    --primary-hover: #3f51b5;
+    --success-color: #66bb6a;
+    --success-light: #81c784;
+    --danger-color: #f44336;
+    --danger-light: #ef5350;
+    --warning-color: #ffb74d;
+    --info-color: #29b6f6;
+    
+    /* Background Variants */
+    --bg-light-overlay: rgba(92, 107, 192, 0.04);
+    --bg-medium-overlay: rgba(92, 107, 192, 0.08);
+    --bg-strong-overlay: rgba(92, 107, 192, 0.15);
+    
+    /* Border Variants */
+    --border-light: #283593;
+    --border-medium: #3f51b5;
+    --border-strong: #5c6bc0;
+    
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    --font-size-base: 14px;
+}
