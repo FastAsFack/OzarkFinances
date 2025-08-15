@@ -115,8 +115,15 @@ chmod 700 ~/.ssh
 
 ### **3.2 Test SSH Connection**
 ```bash
-# From your development machine, test SSH connection
-ssh -i path/to/private/key ozark@YOUR_PI_IP
+# From your WINDOWS development machine, test SSH connection
+# Replace "C:\path\to\your\private\key" with actual path on your Windows PC
+ssh -i "C:\Users\YourUsername\.ssh\ozark_deploy" ozark@YOUR_PI_IP
+
+# Alternative: If you copied the key to a different location on Windows:
+ssh -i "C:\path\to\downloaded\ozark_deploy" ozark@YOUR_PI_IP
+
+# Note: The private key file should be the one you copied from the Pi
+# (the content from "cat ~/.ssh/ozark_deploy" command on the Pi)
 ```
 
 ## 📁 **Phase 4: Directory Structure Setup**
