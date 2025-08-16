@@ -7,15 +7,15 @@ import sqlite3
 import os
 from pathlib import Path
 
-# Database path (adjust as needed)
-DATABASE_PATH = os.path.abspath('ozark_finances.db')
-DATA_DIR = Path(os.path.dirname(DATABASE_PATH))
+# Database path (use environment variable to match Docker config)
+DATABASE_PATH = os.environ.get('DATABASE_PATH') or os.path.join('data', 'ozark_finances.db')
+DATA_DIR = Path(os.environ.get('DATA_DIR') or 'data')
 
 def init_database():
     """Initialize the database with required tables"""
     
-    # Create data directory if it doesn't exist (not needed for current directory)
-    # DATA_DIR.mkdir(exist_ok=True)
+    # Create data directory if it doesn't exist
+    DATA_DIR.mkdir(exist_ok=True)
     
     # Connect to database
     conn = sqlite3.connect(DATABASE_PATH)

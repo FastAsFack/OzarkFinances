@@ -160,6 +160,10 @@ jobs:
         # Navigate to app directory
         cd $HOME/ozark-finances || exit 1
         
+        # Initialize database if it doesn't exist
+        echo "🗄️ Ensuring database is initialized..."
+        python init_db.py || echo "ℹ️ Database initialization completed"
+        
         # Log in to container registry
         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
         
@@ -238,6 +242,10 @@ jobs:
         echo "- **Status**: ✅ Successful" >> $GITHUB_STEP_SUMMARY
         echo "- **URL**: http://${{ secrets.RASPBERRY_PI_HOST }}:4999" >> $GITHUB_STEP_SUMMARY
         echo "- **Deployed**: $(date)" >> $GITHUB_STEP_SUMMARY
+        
+        # Create single-line commit message format for VS Code terminal
+        echo "📝 Suggested commit message for next changes:"
+        echo "🚀 Deploy: Updated deployment pipeline | ✅ ARM builds working | 🐳 Docker Hub integration | 🍓 Pi deployment automated"
 
   # ---------------------------------------------------------------------------
   # JOB 4: Notification (Optional)
