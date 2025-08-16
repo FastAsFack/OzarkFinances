@@ -160,10 +160,6 @@ jobs:
         # Navigate to app directory
         cd $HOME/ozark-finances || exit 1
         
-        # Initialize database if it doesn't exist (run initialization script first)
-        echo "🗄️ Ensuring database is initialized..."
-        python docker_init.py || echo "ℹ️ Database initialization completed"
-        
         # Log in to container registry
         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
         
@@ -179,7 +175,7 @@ jobs:
           if os.path.exists('/app/data/ozark_finances.db'):
               shutil.copy('/app/data/ozark_finances.db', f'/app/data/ozark_finances.db.backup_{timestamp}')
               print(f'✅ Database backed up with timestamp {timestamp}')
-          " || echo "ℹ️ No existing database to backup"
+          " 2>/dev/null || echo "ℹ️ No existing database to backup"
         fi
         
         # Stop existing containers
@@ -192,6 +188,11 @@ jobs:
         
         # Start new containers
         docker compose up -d
+        
+        # Initialize database inside the running container
+        echo "🗄️ Initializing database inside container..."
+        sleep 5  # Give container time to start
+        docker compose exec -T ozark-finances-app python docker_init.py || echo "ℹ️ Database initialization completed"
         
         # Wait for health check
         echo "🔍 Waiting for application to be healthy..."

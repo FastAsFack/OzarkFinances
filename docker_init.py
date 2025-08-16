@@ -109,8 +109,22 @@ def init_database():
             tables = test_cursor.fetchall()
             test_conn.close()
             logger.info(f"✅ Database tables verified: {[table[0] for table in tables]}")
+            
+            # Test a simple query on each table
+            test_conn = sqlite3.connect(db_path)
+            test_cursor = test_conn.cursor()
+            for table in ['Invoices', 'Withdraw', 'KwartaalData', 'DebtRegister']:
+                try:
+                    test_cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                    count = test_cursor.fetchone()[0]
+                    logger.info(f"✅ Table {table}: {count} records")
+                except Exception as e:
+                    logger.error(f"❌ Error testing table {table}: {e}")
+            test_conn.close()
+            
         else:
             logger.error(f"❌ Database file was not created at {db_path}")
+            logger.error(f"Directory contents: {os.listdir(db_dir) if os.path.exists(db_dir) else 'Directory does not exist'}")
             return False
             
     except Exception as e:
@@ -137,14 +151,27 @@ def verify_environment():
     logger.info(f"  Working directory: {os.getcwd()}")
     
     # Check if we're running as expected user
-    logger.info(f"  User ID: {os.getuid() if hasattr(os, 'getuid') else 'Unknown'}")
+    try:
+        logger.info(f"  User ID: {os.getuid()}")
+        logger.info(f"  Group ID: {os.getgid()}")
+    except AttributeError:
+        logger.info("  User ID: Unknown (Windows)")
     
     # Check mounted volumes
     paths_to_check = ['/app/data', '/app/uploads', '/app/generated', '/app/logs']
     for path in paths_to_check:
         exists = os.path.exists(path)
         writable = os.access(path, os.W_OK) if exists else False
-        logger.info(f"  {path}: exists={exists}, writable={writable}")
+        readable = os.access(path, os.R_OK) if exists else False
+        logger.info(f"  {path}: exists={exists}, readable={readable}, writable={writable}")
+        
+        if exists:
+            try:
+                # List contents
+                contents = os.listdir(path)
+                logger.info(f"    Contents: {contents[:5]}{'...' if len(contents) > 5 else ''}")
+            except PermissionError as e:
+                logger.warning(f"    Cannot list contents: {e}")
 
 def main():
     """Main initialization function"""
