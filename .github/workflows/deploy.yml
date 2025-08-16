@@ -192,7 +192,44 @@ jobs:
         # Initialize database inside the running container
         echo "🗄️ Initializing database inside container..."
         sleep 5  # Give container time to start
-        docker compose exec -T ozark-finances-app python docker_init.py || echo "ℹ️ Database initialization completed"
+        
+        # Run database initialization
+        docker compose exec -T ozark-finances-app sh -c '
+        echo "Creating database tables..."
+        sqlite3 /app/data/ozark_finances.db "
+        CREATE TABLE IF NOT EXISTS Invoices (
+            InvoiceID TEXT PRIMARY KEY,
+            InvoiceDate TEXT NOT NULL,
+            Excl REAL NOT NULL,
+            BTW REAL NOT NULL,
+            Incl REAL NOT NULL,
+            status TEXT DEFAULT \"active\",
+            deleted_at TEXT NULL,
+            payment_status TEXT DEFAULT \"pending\"
+        );
+        CREATE TABLE IF NOT EXISTS Withdraw (
+            Date TEXT NOT NULL,
+            Amount REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS KwartaalData (
+            tijdvak TEXT NOT NULL,
+            betaling TEXT NOT NULL,
+            kenmerk TEXT PRIMARY KEY,
+            betaald TEXT NOT NULL,
+            Amount REAL NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS DebtRegister (
+            DebtName TEXT PRIMARY KEY,
+            Amount REAL NOT NULL,
+            UnixStamp INTEGER NOT NULL,
+            OriginalDebt REAL NOT NULL
+        );
+        .tables
+        "
+        echo "✅ Database tables created!"
+        '
+        
+        echo "✅ Database initialization completed!"
         
         # Wait for health check
         echo "🔍 Waiting for application to be healthy..."
