@@ -1122,7 +1122,12 @@ function toggleAllInvoices(checkbox) {
 
 function updateSelectedCount() {
     const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
-    const selectedCount = selectedCheckboxes.length;
+    // Get unique invoice IDs instead of counting all checkboxes (mobile + desktop)
+    const uniqueInvoiceIds = new Set();
+    selectedCheckboxes.forEach(checkbox => {
+        uniqueInvoiceIds.add(checkbox.value);
+    });
+    const selectedCount = uniqueInvoiceIds.size;
     const bulkActionsBar = document.getElementById('bulkActionsBar');
     const countElement = document.getElementById('selectedCount');
     
@@ -1681,7 +1686,12 @@ function selectAllMobile() {
 
 function updateBulkActions() {
     const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
-    const selectedCount = selectedCheckboxes.length;
+    // Get unique invoice IDs instead of counting all checkboxes (mobile + desktop)
+    const uniqueInvoiceIds = new Set();
+    selectedCheckboxes.forEach(checkbox => {
+        uniqueInvoiceIds.add(checkbox.value);
+    });
+    const selectedCount = uniqueInvoiceIds.size;
     const bulkActionsBar = document.getElementById('bulkActionsBar');
     const mobileBulkActionsBar = document.getElementById('mobileBulkActionsBar');
     const selectedCountSpan = document.getElementById('selectedCount');
@@ -1699,12 +1709,18 @@ function updateBulkActions() {
     
     // Update select all checkbox state
     const allCheckboxes = document.querySelectorAll('.invoice-checkbox');
+    // Get unique invoice count for select all state calculation
+    const uniqueInvoiceCount = new Set();
+    allCheckboxes.forEach(checkbox => {
+        uniqueInvoiceCount.add(checkbox.value);
+    });
+    const totalInvoices = uniqueInvoiceCount.size;
     const selectAllCheckbox = document.getElementById('selectAllInvoices');
     
     if (selectedCount === 0) {
         selectAllCheckbox.indeterminate = false;
         selectAllCheckbox.checked = false;
-    } else if (selectedCount === allCheckboxes.length) {
+    } else if (selectedCount === totalInvoices) {
         selectAllCheckbox.indeterminate = false;
         selectAllCheckbox.checked = true;
     } else {
@@ -1715,7 +1731,12 @@ function updateBulkActions() {
 
 function getSelectedInvoiceIds() {
     const selectedCheckboxes = document.querySelectorAll('.invoice-checkbox:checked');
-    return Array.from(selectedCheckboxes).map(checkbox => checkbox.value);
+    // Return unique invoice IDs only (avoid duplicates from mobile + desktop checkboxes)
+    const uniqueIds = new Set();
+    selectedCheckboxes.forEach(checkbox => {
+        uniqueIds.add(checkbox.value);
+    });
+    return Array.from(uniqueIds);
 }
 
 function clearSelection() {
