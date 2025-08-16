@@ -79,6 +79,9 @@ USER appuser
 # Create SQLite databases directory
 RUN mkdir -p /app/data
 
+# Make startup script executable
+RUN chmod +x start.sh
+
 # Expose port
 EXPOSE 5000
 
@@ -86,5 +89,5 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:5000/health', timeout=5)" || exit 1
 
-# Default command
-CMD ["python", "app.py"]
+# Use startup script as default command
+CMD ["./start.sh"]
