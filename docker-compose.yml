@@ -114,35 +114,35 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ~/ozark-finances/data
+      device: /home/ozark/ozark-finances/data
   
   ozark_uploads:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ~/ozark-finances/uploads
+      device: /home/ozark/ozark-finances/uploads
   
   ozark_generated:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ~/ozark-finances/generated
+      device: /home/ozark/ozark-finances/generated
   
   ozark_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ~/ozark-finances/logs
+      device: /home/ozark/ozark-finances/logs
   
   ozark_backups:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ~/ozark-finances/backups
+      device: /home/ozark/ozark-finances/backups
 
 # =============================================================================
 # NETWORKS
