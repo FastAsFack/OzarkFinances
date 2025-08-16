@@ -131,7 +131,7 @@ jobs:
   # ---------------------------------------------------------------------------
   deploy:
     name: 🍓 Deploy to Raspberry Pi
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Use Pi as runner instead of external server
     needs: [test, build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/Main'
     
@@ -142,12 +142,7 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
     
-    - name: 🔧 Setup SSH
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.RASPBERRY_PI_SSH_KEY }}
-    
-    - name: 📋 Create Deployment Script
+    - name:  Create Deployment Script
       run: |
         cat > deploy.sh << 'EOF'
         #!/bin/bash
@@ -220,15 +215,15 @@ jobs:
         
         chmod +x deploy.sh
     
-    - name: 🚀 Execute Deployment
+    - name: 🚀 Execute Deployment (Local)
       run: |
-        scp -o StrictHostKeyChecking=no deploy.sh ${{ secrets.RASPBERRY_PI_USER }}@${{ secrets.RASPBERRY_PI_HOST }}:/tmp/
-        ssh -o StrictHostKeyChecking=no ${{ secrets.RASPBERRY_PI_USER }}@${{ secrets.RASPBERRY_PI_HOST }} "bash /tmp/deploy.sh"
+        # Since we're running on the Pi, deploy locally
+        bash deploy.sh
     
     - name: 🧪 Post-Deployment Test
       run: |
         sleep 10
-        curl -f http://${{ secrets.RASPBERRY_PI_HOST }}:5000/health || {
+        curl -f http://localhost:5000/health || {
           echo "❌ Post-deployment health check failed"
           exit 1
         }
