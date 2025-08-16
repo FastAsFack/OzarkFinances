@@ -32,8 +32,8 @@ on:
 # ENVIRONMENT VARIABLES
 # =============================================================================
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  REGISTRY: docker.io
+  IMAGE_NAME: fastasfack/ozark-finances
 
 # =============================================================================
 # JOBS
@@ -100,9 +100,8 @@ jobs:
     - name: 🔑 Log in to Container Registry
       uses: docker/login-action@v3
       with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
     
     - name: 🏷️ Extract Metadata
       id: meta
@@ -171,7 +170,7 @@ jobs:
         fi
         
         # Log in to container registry
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
         
         # Pull latest image
         docker-compose pull
