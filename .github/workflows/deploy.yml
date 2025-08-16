@@ -165,13 +165,13 @@ jobs:
         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
         
         # Pull latest image
-        docker-compose pull
+        docker compose pull
         
         # Backup current data (if exists)
         if [ -f "docker-compose.yml" ]; then
           echo "📦 Creating backup..."
           timestamp=$(date +%Y%m%d_%H%M%S)
-          docker-compose exec -T ozark-finances-app python -c "
+          docker compose exec -T ozark-finances-app python -c "
           import shutil, os, datetime
           if os.path.exists('/app/data/ozark_finances.db'):
               shutil.copy('/app/data/ozark_finances.db', f'/app/data/ozark_finances.db.backup_{timestamp}')
@@ -180,16 +180,16 @@ jobs:
         fi
         
         # Stop existing containers
-        docker-compose down --remove-orphans || true
+        docker compose down --remove-orphans || true
         
         # Start new containers
-        docker-compose up -d
+        docker compose up -d
         
         # Wait for health check
         echo "🔍 Waiting for application to be healthy..."
         timeout=60
         while [ $timeout -gt 0 ]; do
-          if docker-compose ps | grep -q "healthy"; then
+          if docker compose ps | grep -q "healthy"; then
             echo "✅ Application is healthy!"
             break
           fi
@@ -199,7 +199,7 @@ jobs:
         
         if [ $timeout -le 0 ]; then
           echo "❌ Health check failed"
-          docker-compose logs
+          docker compose logs
           exit 1
         fi
         
