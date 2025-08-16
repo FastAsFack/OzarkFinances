@@ -142,7 +142,7 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
     
-    - name:  Create Deployment Script
+    - name: 📋 Create Deployment Script
       run: |
         cat > deploy.sh << 'EOF'
         #!/bin/bash
@@ -157,10 +157,16 @@ jobs:
         # Navigate to app directory
         cd /opt/ozark-finances || exit 1
         
-        # Pull latest code
+        # Pull latest code (handle existing directory)
         if [ -d ".git" ]; then
-          git pull origin Main
+          echo "📥 Updating existing repository..."
+          git fetch origin
+          git reset --hard origin/Main
+          git clean -fd
         else
+          echo "📥 Cloning repository..."
+          # Remove any existing files first
+          rm -rf * .* 2>/dev/null || true
           git clone https://github.com/${{ github.repository }}.git .
         fi
         
