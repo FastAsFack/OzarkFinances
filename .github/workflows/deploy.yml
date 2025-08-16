@@ -150,16 +150,15 @@ jobs:
         
         echo "🍓 Starting Raspberry Pi deployment..."
         
-        # Create directories
-        sudo mkdir -p /opt/ozark-finances/{data,uploads,generated,logs,backups}
-        sudo chown -R $USER:$USER /opt/ozark-finances
+        # Create directories (use home directory to avoid sudo issues)
+        mkdir -p $HOME/ozark-finances/{data,uploads,generated,logs,backups}
         
         # Copy current checkout to deployment directory
         echo "📥 Copying latest code to deployment directory..."
-        rsync -av --delete $GITHUB_WORKSPACE/ /opt/ozark-finances/ --exclude=data --exclude=uploads --exclude=generated --exclude=logs --exclude=backups
+        rsync -av --delete $GITHUB_WORKSPACE/ $HOME/ozark-finances/ --exclude=data --exclude=uploads --exclude=generated --exclude=logs --exclude=backups
         
         # Navigate to app directory
-        cd /opt/ozark-finances || exit 1
+        cd $HOME/ozark-finances || exit 1
         
         # Log in to container registry
         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
