@@ -154,21 +154,12 @@ jobs:
         sudo mkdir -p /opt/ozark-finances/{data,uploads,generated,logs,backups}
         sudo chown -R $USER:$USER /opt/ozark-finances
         
+        # Copy current checkout to deployment directory
+        echo "📥 Copying latest code to deployment directory..."
+        rsync -av --delete $GITHUB_WORKSPACE/ /opt/ozark-finances/ --exclude=data --exclude=uploads --exclude=generated --exclude=logs --exclude=backups
+        
         # Navigate to app directory
         cd /opt/ozark-finances || exit 1
-        
-        # Pull latest code (handle existing directory)
-        if [ -d ".git" ]; then
-          echo "📥 Updating existing repository..."
-          git fetch origin
-          git reset --hard origin/Main
-          git clean -fd
-        else
-          echo "📥 Cloning repository..."
-          # Remove any existing files first
-          rm -rf * .* 2>/dev/null || true
-          git clone https://github.com/${{ github.repository }}.git .
-        fi
         
         # Log in to container registry
         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
