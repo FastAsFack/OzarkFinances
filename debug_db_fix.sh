@@ -21,7 +21,7 @@ docker compose ps
 # Check if container is running
 echo ""
 echo "3. Container Status:"
-CONTAINER_RUNNING=$(docker compose ps | grep ozark-finances-app | grep "Up" | wc -l)
+CONTAINER_RUNNING=$(docker compose ps | grep ozark-finances | grep "Up" | wc -l)
 if [ "$CONTAINER_RUNNING" -eq "0" ]; then
     echo "❌ Container is not running! Starting it..."
     docker compose up -d
@@ -33,71 +33,71 @@ fi
 # Check mounted volumes
 echo ""
 echo "4. Checking mounted volumes in container:"
-docker compose exec ozark-finances-app df -h | grep "/app"
-docker compose exec ozark-finances-app ls -la /app/
+docker compose exec ozark-finances df -h | grep "/app"
+docker compose exec ozark-finances ls -la /app/
 
 # Check data directory
 echo ""
 echo "5. Checking /app/data directory:"
-docker compose exec ozark-finances-app ls -la /app/data/ 2>/dev/null || echo "❌ /app/data does not exist"
+docker compose exec ozark-finances ls -la /app/data/ 2>/dev/null || echo "❌ /app/data does not exist"
 
 # Create data directory if it doesn't exist
 echo ""
 echo "6. Creating data directory:"
-docker compose exec ozark-finances-app mkdir -p /app/data
-docker compose exec ozark-finances-app ls -la /app/data/
+docker compose exec ozark-finances mkdir -p /app/data
+docker compose exec ozark-finances ls -la /app/data/
 
 # Check if SQLite is available in container
 echo ""
 echo "7. Testing SQLite availability:"
-docker compose exec ozark-finances-app which sqlite3
-docker compose exec ozark-finances-app sqlite3 --version
+docker compose exec ozark-finances which sqlite3
+docker compose exec ozark-finances sqlite3 --version
 
 # Check current database file
 echo ""
 echo "8. Checking current database file:"
-docker compose exec ozark-finances-app ls -la /app/data/ozark_finances.db 2>/dev/null || echo "❌ Database file does not exist"
+docker compose exec ozark-finances ls -la /app/data/ozark_finances.db 2>/dev/null || echo "❌ Database file does not exist"
 
 # Create database file and tables - FORCE IT
 echo ""
 echo "9. FORCE CREATING DATABASE AND TABLES:"
 
 echo "Creating Invoices table..."
-docker compose exec ozark-finances-app sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Invoices (InvoiceID TEXT PRIMARY KEY, InvoiceDate TEXT NOT NULL, Excl REAL NOT NULL, BTW REAL NOT NULL, Incl REAL NOT NULL, status TEXT DEFAULT 'active', deleted_at TEXT NULL, payment_status TEXT DEFAULT 'pending');"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Invoices (InvoiceID TEXT PRIMARY KEY, InvoiceDate TEXT NOT NULL, Excl REAL NOT NULL, BTW REAL NOT NULL, Incl REAL NOT NULL, status TEXT DEFAULT 'active', deleted_at TEXT NULL, payment_status TEXT DEFAULT 'pending');"
 echo "Exit code: $?"
 
 echo "Creating Withdraw table..."
-docker compose exec ozark-finances-app sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Withdraw (Date TEXT NOT NULL, Amount REAL NOT NULL);"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Withdraw (Date TEXT NOT NULL, Amount REAL NOT NULL);"
 echo "Exit code: $?"
 
 echo "Creating KwartaalData table..."
-docker compose exec ozark-finances-app sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS KwartaalData (tijdvak TEXT NOT NULL, betaling TEXT NOT NULL, kenmerk TEXT PRIMARY KEY, betaald TEXT NOT NULL, Amount REAL NOT NULL);"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS KwartaalData (tijdvak TEXT NOT NULL, betaling TEXT NOT NULL, kenmerk TEXT PRIMARY KEY, betaald TEXT NOT NULL, Amount REAL NOT NULL);"
 echo "Exit code: $?"
 
 echo "Creating DebtRegister table..."
-docker compose exec ozark-finances-app sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS DebtRegister (DebtName TEXT PRIMARY KEY, Amount REAL NOT NULL, UnixStamp INTEGER NOT NULL, OriginalDebt REAL NOT NULL);"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS DebtRegister (DebtName TEXT PRIMARY KEY, Amount REAL NOT NULL, UnixStamp INTEGER NOT NULL, OriginalDebt REAL NOT NULL);"
 echo "Exit code: $?"
 
 # Verify database file was created
 echo ""
 echo "10. Verifying database file after creation:"
-docker compose exec ozark-finances-app ls -la /app/data/ozark_finances.db
-docker compose exec ozark-finances-app file /app/data/ozark_finances.db
+docker compose exec ozark-finances ls -la /app/data/ozark_finances.db
+docker compose exec ozark-finances file /app/data/ozark_finances.db
 
 # Check tables in database
 echo ""
 echo "11. Checking tables in database:"
-docker compose exec ozark-finances-app sqlite3 /app/data/ozark_finances.db ".tables"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db ".tables"
 
 # Check table schema
 echo ""
 echo "12. Checking Invoices table schema:"
-docker compose exec ozark-finances-app sqlite3 /app/data/ozark_finances.db ".schema Invoices"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db ".schema Invoices"
 
 # Test database access from Python
 echo ""
 echo "13. Testing database access from Python in container:"
-docker compose exec ozark-finances-app python -c "
+docker compose exec ozark-finances python -c "
 import sqlite3
 import os
 db_path = '/app/data/ozark_finances.db'
@@ -124,12 +124,12 @@ else:
 # Check environment variables
 echo ""
 echo "14. Checking environment variables in container:"
-docker compose exec ozark-finances-app env | grep -E "(DATABASE_PATH|DATA_DIR)"
+docker compose exec ozark-finances env | grep -E "(DATABASE_PATH|DATA_DIR)"
 
 # Restart the application to pick up changes
 echo ""
 echo "15. Restarting application to pick up changes:"
-docker compose restart ozark-finances-app
+docker compose restart ozark-finances
 
 echo ""
 echo "🎉 DIAGNOSIS AND FIX COMPLETED!"
