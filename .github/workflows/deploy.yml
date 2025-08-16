@@ -191,43 +191,38 @@ jobs:
         
         # Initialize database inside the running container
         echo "🗄️ Initializing database inside container..."
-        sleep 5  # Give container time to start
+        sleep 10  # Give container more time to start
         
-        # Run database initialization
-        docker compose exec -T ozark-finances-app sh -c '
-        echo "Creating database tables..."
-        sqlite3 /app/data/ozark_finances.db "
-        CREATE TABLE IF NOT EXISTS Invoices (
-            InvoiceID TEXT PRIMARY KEY,
-            InvoiceDate TEXT NOT NULL,
-            Excl REAL NOT NULL,
-            BTW REAL NOT NULL,
-            Incl REAL NOT NULL,
-            status TEXT DEFAULT \"active\",
-            deleted_at TEXT NULL,
-            payment_status TEXT DEFAULT \"pending\"
-        );
-        CREATE TABLE IF NOT EXISTS Withdraw (
-            Date TEXT NOT NULL,
-            Amount REAL NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS KwartaalData (
-            tijdvak TEXT NOT NULL,
-            betaling TEXT NOT NULL,
-            kenmerk TEXT PRIMARY KEY,
-            betaald TEXT NOT NULL,
-            Amount REAL NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS DebtRegister (
-            DebtName TEXT PRIMARY KEY,
-            Amount REAL NOT NULL,
-            UnixStamp INTEGER NOT NULL,
-            OriginalDebt REAL NOT NULL
-        );
-        .tables
-        "
-        echo "✅ Database tables created!"
-        '
+        # Check if container is running
+        echo "📋 Checking container status..."
+        docker compose ps
+        
+        # Create data directory first
+        echo "� Creating data directory..."
+        docker compose exec -T ozark-finances-app mkdir -p /app/data
+        
+        # Initialize database with separate commands for better debugging
+        echo "🗄️ Creating Invoices table..."
+        docker compose exec -T ozark-finances-app sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Invoices (InvoiceID TEXT PRIMARY KEY, InvoiceDate TEXT NOT NULL, Excl REAL NOT NULL, BTW REAL NOT NULL, Incl REAL NOT NULL, status TEXT DEFAULT 'active', deleted_at TEXT NULL, payment_status TEXT DEFAULT 'pending');"
+        
+        echo "🗄️ Creating Withdraw table..."
+        docker compose exec -T ozark-finances-app sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Withdraw (Date TEXT NOT NULL, Amount REAL NOT NULL);"
+        
+        echo "🗄️ Creating KwartaalData table..."
+        docker compose exec -T ozark-finances-app sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS KwartaalData (tijdvak TEXT NOT NULL, betaling TEXT NOT NULL, kenmerk TEXT PRIMARY KEY, betaald TEXT NOT NULL, Amount REAL NOT NULL);"
+        
+        echo "🗄️ Creating DebtRegister table..."
+        docker compose exec -T ozark-finances-app sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS DebtRegister (DebtName TEXT PRIMARY KEY, Amount REAL NOT NULL, UnixStamp INTEGER NOT NULL, OriginalDebt REAL NOT NULL);"
+        
+        # Verify tables were created
+        echo "🔍 Verifying database tables..."
+        docker compose exec -T ozark-finances-app sqlite3 /app/data/ozark_finances.db ".tables"
+        
+        # Check file exists and permissions
+        echo "� Checking database file..."
+        docker compose exec -T ozark-finances-app ls -la /app/data/
+        
+        echo "✅ Database initialization completed!"
         
         echo "✅ Database initialization completed!"
         
