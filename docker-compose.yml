@@ -2,8 +2,6 @@
 # Production deployment for Raspberry Pi 3B+
 # Created: August 15, 2025
 
-version: '3.8'
-
 services:
   # =============================================================================
   # MAIN APPLICATION SERVICE
@@ -17,7 +15,7 @@ services:
     
     # Port mapping
     ports:
-      - "5000:5000"
+      - "4999:5000"
     
     # Environment variables
     environment:
@@ -116,35 +114,35 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /opt/ozark-finances/data
+      device: ~/ozark-finances/data
   
   ozark_uploads:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/ozark-finances/uploads
+      device: ~/ozark-finances/uploads
   
   ozark_generated:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/ozark-finances/generated
+      device: ~/ozark-finances/generated
   
   ozark_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/ozark-finances/logs
+      device: ~/ozark-finances/logs
   
   ozark_backups:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/ozark-finances/backups
+      device: ~/ozark-finances/backups
 
 # =============================================================================
 # NETWORKS
@@ -152,6 +150,3 @@ volumes:
 networks:
   ozark-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16

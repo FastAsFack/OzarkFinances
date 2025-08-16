@@ -211,7 +211,7 @@ jobs:
         docker image prune -f
         
         echo "🎉 Deployment completed successfully!"
-        echo "🌐 Application available at: http://$(hostname -I | awk '{print $1}'):5000"
+        echo "🌐 Application available at: http://$(hostname -I | awk '{print $1}'):4999"
         EOF
         
         chmod +x deploy.sh
@@ -224,7 +224,7 @@ jobs:
     - name: 🧪 Post-Deployment Test
       run: |
         sleep 10
-        curl -f http://localhost:5000/health || {
+        curl -f http://localhost:4999/health || {
           echo "❌ Post-deployment health check failed"
           exit 1
         }
@@ -236,7 +236,7 @@ jobs:
         echo "- **Target**: Raspberry Pi (${{ secrets.RASPBERRY_PI_HOST }})" >> $GITHUB_STEP_SUMMARY
         echo "- **Image**: ${{ needs.build.outputs.image-tag }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Status**: ✅ Successful" >> $GITHUB_STEP_SUMMARY
-        echo "- **URL**: http://${{ secrets.RASPBERRY_PI_HOST }}:5000" >> $GITHUB_STEP_SUMMARY
+        echo "- **URL**: http://${{ secrets.RASPBERRY_PI_HOST }}:4999" >> $GITHUB_STEP_SUMMARY
         echo "- **Deployed**: $(date)" >> $GITHUB_STEP_SUMMARY
 
   # ---------------------------------------------------------------------------
