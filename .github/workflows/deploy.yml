@@ -181,8 +181,10 @@ jobs:
         # Stop existing containers
         docker compose down --remove-orphans || true
         
-        # Clean up any conflicting networks
+        # Clean up any conflicting networks more aggressively
         docker network prune -f || true
+        docker network rm ozark-finances_ozark-network 2>/dev/null || true
+        docker network rm ozark-finances_default 2>/dev/null || true
         
         # Start new containers
         docker compose up -d
