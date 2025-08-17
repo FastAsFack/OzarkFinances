@@ -1576,27 +1576,47 @@ def upload_withdraws():
             skipped_count = 0
             
             # Check if this looks like a Knab export (auto-detect and process)
+            # Check for original Knab headers or processed Knab format (DD-MM-YYYY;amount;description)
             is_knab_format = any('Rekeningnummer' in line and 'Transactiedatum' in line and 'Omschrijving' in line for line in lines[:5])
+            
+            # Also check for processed Knab format (semicolon-delimited with date-amount-description pattern)
+            if not is_knab_format:
+                import re
+                processed_knab_pattern = re.compile(r'^\d{2}-\d{2}-\d{4};\d+([,\.]\d+)?;.+$')
+                is_knab_format = any(processed_knab_pattern.match(line.strip()) for line in lines[:10] if line.strip())
             
             if is_knab_format:
                 logger.info("Detected Knab CSV format, processing...")
                 
-                # Process using Knab CSV processor
-                result = process_knab_csv_data(temp_path)
+                # Check if file is already processed (no headers, just data)
+                has_headers = any('Rekeningnummer' in line and 'Transactiedatum' in line and 'Omschrijving' in line for line in lines[:5])
                 
-                if not result.get('success', False):
-                    flash(f'Error processing Knab CSV: {result.get("error", "Unknown error")}', 'error')
-                    os.remove(temp_path)
-                    return redirect(url_for('withdraws'))
-                
-                # Read the processed CSV file
-                processed_file_path = result['output_path']
-                with open(processed_file_path, 'r', encoding='utf-8') as f:
-                    processed_content = f.read()
-                processed_lines = processed_content.strip().split('\n')
-                
-                # Skip header line if present
-                data_lines = processed_lines[1:] if processed_lines and 'Transactiedatum' in processed_lines[0] else processed_lines
+                if has_headers:
+                    # Process using Knab CSV processor for raw Knab export
+                    result = process_knab_csv_data(temp_path)
+                    
+                    if not result.get('success', False):
+                        flash(f'Error processing Knab CSV: {result.get("error", "Unknown error")}', 'error')
+                        os.remove(temp_path)
+                        return redirect(url_for('withdraws'))
+                    
+                    # Read the processed CSV file
+                    processed_file_path = result['output_path']
+                    with open(processed_file_path, 'r', encoding='utf-8') as f:
+                        processed_content = f.read()
+                    processed_lines = processed_content.strip().split('\n')
+                    
+                    # Skip header line if present
+                    data_lines = processed_lines[1:] if processed_lines and 'Transactiedatum' in processed_lines[0] else processed_lines
+                    
+                    # Clean up processed file
+                    if os.path.exists(processed_file_path):
+                        os.remove(processed_file_path)
+                else:
+                    # File is already processed, use lines directly
+                    logger.info("File appears to be already processed, using directly...")
+                    # Skip header line if present (check for 'Transactiedatum' in first line)
+                    data_lines = lines[1:] if lines and 'Transactiedatum' in lines[0] else lines
                 
                 for line_num, line in enumerate(data_lines, 1):
                     if line.strip():
@@ -1633,10 +1653,6 @@ def upload_withdraws():
                             skipped_count += 1
                             continue
                 
-                # Clean up processed file
-                if os.path.exists(processed_file_path):
-                    os.remove(processed_file_path)
-                    
                 flash(f'Successfully processed Knab CSV and imported {inserted_count} withdraw entries' + 
                       (f' (skipped {skipped_count} invalid entries)' if skipped_count > 0 else ''), 'success')
             
