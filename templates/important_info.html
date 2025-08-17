@@ -342,78 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Test function to verify dialog system is working
-    window.testConfirmDialog = function() {
-        console.log('Testing confirmation dialog...');
-        if (typeof showConfirmation === 'function') {
-            showConfirmation(
-                'Test Dialog',
-                'This is a test dialog. Click OK to see a success toast.',
-                function() {
-                    console.log('Test dialog confirmed!');
-                    if (typeof showToast === 'function') {
-                        showToast('Test dialog is working!', 'success');
-                    } else {
-                        alert('Test dialog confirmed!');
-                    }
-                }
-            );
-        } else {
-            console.error('showConfirmation function not available');
-            alert('showConfirmation function not available. Check console for details.');
-        }
-    };
-    
     // Log successful initialization
     console.log('Important Info page JavaScript fully initialized');
-    
-    // Add a test function to be called from browser console
-    window.testDialogs = function() {
-        console.log('Testing dialogs from console...');
-        testConfirmDialog();
-    };
 });
-
-// Simple test function that can be called from buttons or console
-function testDialogForPayment(paymentId) {
-    console.log('Testing dialog for payment:', paymentId);
-    
-    // Try multiple approaches to ensure it works
-    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
-        console.log('Using MessageBox.showConfirmation directly');
-        MessageBox.showConfirmation(
-            'Dialog Test',
-            `This is a test dialog for payment ID: ${paymentId}. The dialogs are working correctly!`,
-            function() {
-                console.log('Test dialog confirmed for payment:', paymentId);
-                if (typeof MessageBox.showToast === 'function') {
-                    MessageBox.showToast('Dialog test successful!', 'success');
-                } else {
-                    alert('Dialog test successful!');
-                }
-            }
-        );
-    } else if (typeof showConfirmation === 'function') {
-        console.log('Using global showConfirmation function');
-        showConfirmation(
-            'Dialog Test',
-            `This is a test dialog for payment ID: ${paymentId}. The dialogs are working correctly!`,
-            function() {
-                console.log('Test dialog confirmed for payment:', paymentId);
-                if (typeof showToast === 'function') {
-                    showToast('Dialog test successful!', 'success');
-                } else {
-                    alert('Dialog test successful!');
-                }
-            }
-        );
-    } else {
-        console.error('No dialog function available, using browser confirm');
-        if (confirm(`Dialog Test\n\nThis is a test dialog for payment ID: ${paymentId}. The dialogs are working correctly!`)) {
-            alert('Dialog test successful (using browser confirm)!');
-        }
-    }
-}
 
 // BTW Payment confirmation functions
 function confirmMarkPaid(paymentId) {
