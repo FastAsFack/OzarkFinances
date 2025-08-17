@@ -10,13 +10,22 @@ echo "🍓 Starting simple Raspberry Pi deployment..."
 cd $HOME/ozark-finances || exit 1
 
 # Stop existing containers (ignore errors)
+echo "🛑 Stopping existing containers..."
 docker compose down --remove-orphans 2>/dev/null || true
 
-# Pull latest image
-docker compose pull || echo "⚠️ Pull failed, will use cached images"
+# Remove any existing containers to force fresh start
+echo "🗑️ Removing existing containers and images..."
+docker container prune -f || true
+docker rmi fastasfack/ozark-finances:latest 2>/dev/null || echo "No existing image to remove"
 
-# Start containers
-docker compose up -d
+# Force pull latest image (no cache)
+echo "📥 Force pulling latest image..."
+docker pull fastasfack/ozark-finances:latest || echo "⚠️ Direct pull failed, trying compose pull"
+docker compose pull --ignore-pull-failures || echo "⚠️ Pull completed with some warnings"
+
+# Start containers with fresh build
+echo "🚀 Starting containers..."
+docker compose up -d --force-recreate --remove-orphans
 
 # Wait for container to be ready
 echo "⏳ Waiting for container to start..."

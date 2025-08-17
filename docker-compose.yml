@@ -7,9 +7,11 @@ services:
   # MAIN APPLICATION SERVICE
   # =============================================================================
   ozark-finances:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: fastasfack/ozark-finances:latest
+    pull_policy: always
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     container_name: ozark-finances-app
     restart: unless-stopped
     
