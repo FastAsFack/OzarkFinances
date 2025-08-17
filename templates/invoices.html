@@ -9,9 +9,6 @@
     <div class="col-12">
         <h1 class="mb-4">
             <i class="fas fa-receipt me-2"></i>Invoice Management
-            <span class="info-btn" data-info="invoice-management" title="Click for more information">
-                <i class="fas fa-info"></i>
-            </span>
             <!-- Mobile Add Button -->
             <button class="btn btn-primary btn-sm float-end show-on-mobile" onclick="showMobileAddInvoice()">
                 <i class="fas fa-plus"></i>
@@ -48,9 +45,6 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="fas fa-filter me-2"></i>Invoice Filters
-                    <span class="info-btn" data-info="invoice-search" title="Click for more information">
-                        <i class="fas fa-info"></i>
-                    </span>
                     <!-- Mobile Filter Indicator -->
                     <span class="badge bg-info ms-2 show-on-mobile" id="activeFiltersCount" style="display: none;">0</span>
                 </h5>
@@ -324,9 +318,6 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="fas fa-list me-2"></i>Invoice History ({{ pagination.total if pagination else invoices|length }} entries)
-                    <span class="info-btn" data-info="invoice-search" title="Click for more information">
-                        <i class="fas fa-info"></i>
-                    </span>
                 </h5>
                 <div class="d-flex align-items-center">
                     <!-- Quick search -->
@@ -349,9 +340,6 @@
                         <span class="me-3 text-info">
                             <i class="fas fa-check-square me-2"></i>
                             <span id="selectedCount">0</span> invoice(s) selected
-                        </span>
-                        <span class="info-btn" data-info="bulk-operations" title="Click for more information">
-                            <i class="fas fa-info"></i>
                         </span>
                     </div>
                     <div class="btn-group btn-group-sm" role="group">
@@ -905,9 +893,6 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="fas fa-trash-alt me-2"></i>Invoice Bin
-                    <span class="info-btn" data-info="invoice-bin" title="Click for more information">
-                        <i class="fas fa-info"></i>
-                    </span>
                 </h5>
                 <span class="badge bg-danger" id="binCount">{{ bin_invoices|length if bin_invoices else 0 }}</span>
             </div>
@@ -1030,17 +1015,12 @@ function setDatePreset(preset) {
 
 // Integrated Bin Functions
 function restoreInvoiceFromBin(invoiceId) {
-    showConfirmation(
-        'Restore Invoice',
-        `Are you sure you want to restore invoice ${invoiceId} from the bin?`,
-        function() {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/invoices/restore/${invoiceId}`;
-            document.body.appendChild(form);
-            form.submit();
-        }
-    );
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/invoices/restore/${invoiceId}`;
+    document.body.appendChild(form);
+    form.submit();
+    showToast(`Invoice ${invoiceId} restored from bin`, 'success');
 }
 
 function permanentDeleteInvoice(invoiceId) {
@@ -1183,6 +1163,7 @@ function bulkMarkAsPaid() {
             
             document.body.appendChild(form);
             form.submit();
+            showToast(`${selectedCheckboxes.length} invoice(s) marked as paid`, 'success');
         }
     );
 }

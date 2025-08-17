@@ -148,29 +148,6 @@
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-info-circle me-2"></i>Instructions
-                </h5>
-            </div>
-            <div class="card-body">
-                <h6 class="text-info mb-3">BTW Quarterly Payments:</h6>
-                <ul class="mb-0">
-                    <li>The <strong>Auto-Calculate</strong> <i class="fas fa-calculator"></i> button calculates BTW from your invoices for each quarter</li>
-                    <li>Use the <strong>Edit</strong> <i class="fas fa-edit"></i> button to manually enter payment details</li>
-                    <li>The <strong>Mark as Paid</strong> <i class="fas fa-check"></i> button records the payment as completed today</li>
-                    <li>The <strong>Reverse</strong> <i class="fas fa-undo"></i> button undoes a payment (marks as unpaid and clears payment date)</li>
-                    <li>Due dates are automatically calculated based on Dutch BTW deadlines</li>
-                    <li>Overdue payments are highlighted in red</li>
-                    <li>Payment IDs are automatically formatted with spaces every 4 digits for better readability</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
@@ -350,33 +327,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function confirmMarkPaid(paymentId) {
     console.log('confirmMarkPaid called for payment:', paymentId);
     
-    // Try MessageBox directly first, then fall back to global functions
-    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
-        console.log('Using MessageBox.showConfirmation directly');
-        MessageBox.showConfirmation(
-            'Mark Payment as Paid',
-            'Mark this BTW payment as paid today? This will record the current date as the payment date.',
-            function() {
-                console.log('Confirmed mark paid for payment:', paymentId);
-                submitMarkPaidForm(paymentId);
-            }
-        );
-    } else if (typeof showConfirmation === 'function') {
-        console.log('Using global showConfirmation function');
-        showConfirmation(
-            'Mark Payment as Paid',
-            'Mark this BTW payment as paid today? This will record the current date as the payment date.',
-            function() {
-                console.log('Confirmed mark paid for payment:', paymentId);
-                submitMarkPaidForm(paymentId);
-            }
-        );
-    } else {
-        console.error('No confirmation dialog available, using browser confirm');
-        if (confirm('Mark this BTW payment as paid today? This will record the current date as the payment date.')) {
-            submitMarkPaidForm(paymentId);
-        }
+    // Show toast notification and proceed immediately
+    if (typeof showToast === 'function') {
+        showToast('Payment marked as paid for today', 'success');
     }
+    submitMarkPaidForm(paymentId);
 }
 
 function submitMarkPaidForm(paymentId) {
@@ -415,33 +370,11 @@ function submitMarkPaidForm(paymentId) {
 function confirmReverseBtwPayment(paymentId) {
     console.log('confirmReverseBtwPayment called for payment:', paymentId);
     
-    // Try MessageBox directly first, then fall back to global functions
-    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
-        console.log('Using MessageBox.showConfirmation directly');
-        MessageBox.showConfirmation(
-            'Reverse BTW Payment',
-            'Reverse this payment and mark as unpaid? This will clear the payment date and change status back to pending.',
-            function() {
-                console.log('Confirmed reverse payment for payment:', paymentId);
-                submitReverseBtwForm(paymentId);
-            }
-        );
-    } else if (typeof showConfirmation === 'function') {
-        console.log('Using global showConfirmation function');
-        showConfirmation(
-            'Reverse BTW Payment',
-            'Reverse this payment and mark as unpaid? This will clear the payment date and change status back to pending.',
-            function() {
-                console.log('Confirmed reverse payment for payment:', paymentId);
-                submitReverseBtwForm(paymentId);
-            }
-        );
-    } else {
-        console.error('No confirmation dialog available, using browser confirm');
-        if (confirm('Reverse this payment and mark as unpaid? This will clear the payment date and change status back to pending.')) {
-            submitReverseBtwForm(paymentId);
-        }
+    // Show toast notification and proceed immediately
+    if (typeof showToast === 'function') {
+        showToast('Payment reversed - marked as unpaid', 'warning');
     }
+    submitReverseBtwForm(paymentId);
 }
 
 function submitReverseBtwForm(paymentId) {
@@ -480,33 +413,11 @@ function submitReverseBtwForm(paymentId) {
 function confirmAutoCalculate(paymentId) {
     console.log('confirmAutoCalculate called for payment:', paymentId);
     
-    // Try MessageBox directly first, then fall back to global functions
-    if (typeof MessageBox !== 'undefined' && MessageBox.showConfirmation) {
-        console.log('Using MessageBox.showConfirmation directly');
-        MessageBox.showConfirmation(
-            'Auto-Calculate BTW Amount',
-            'Calculate the BTW amount automatically from your invoice data for this quarter? This will overwrite any manually entered amount.',
-            function() {
-                console.log('Confirmed auto calculate for payment:', paymentId);
-                submitAutoCalculateForm(paymentId);
-            }
-        );
-    } else if (typeof showConfirmation === 'function') {
-        console.log('Using global showConfirmation function');
-        showConfirmation(
-            'Auto-Calculate BTW Amount',
-            'Calculate the BTW amount automatically from your invoice data for this quarter? This will overwrite any manually entered amount.',
-            function() {
-                console.log('Confirmed auto calculate for payment:', paymentId);
-                submitAutoCalculateForm(paymentId);
-            }
-        );
-    } else {
-        console.error('No confirmation dialog available, using browser confirm');
-        if (confirm('Calculate the BTW amount automatically from your invoice data for this quarter? This will overwrite any manually entered amount.')) {
-            submitAutoCalculateForm(paymentId);
-        }
+    // Show toast notification and proceed immediately
+    if (typeof showToast === 'function') {
+        showToast('Auto-calculating BTW amount from invoices...', 'info');
     }
+    submitAutoCalculateForm(paymentId);
 }
 
 function submitAutoCalculateForm(paymentId) {
