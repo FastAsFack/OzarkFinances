@@ -22,7 +22,7 @@ echo "Creating KwartaalData table..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS KwartaalData (tijdvak TEXT NOT NULL, betaling TEXT NOT NULL, kenmerk TEXT PRIMARY KEY, betaald TEXT NOT NULL, Amount REAL NOT NULL);"
 
 echo "Creating DebtRegister table..."
-docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS DebtRegister (DebtName TEXT PRIMARY KEY, Amount REAL NOT NULL, UnixStamp INTEGER NOT NULL, OriginalDebt REAL NOT NULL, Category TEXT DEFAULT 'General');"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS DebtRegister (DebtName TEXT PRIMARY KEY, Amount REAL NOT NULL, UnixStamp INTEGER NOT NULL, OriginalDebt REAL NOT NULL, Category TEXT DEFAULT 'General', DueDate TEXT DEFAULT '', MinimumPayment REAL DEFAULT 0, InterestRate REAL DEFAULT 0, Notes TEXT DEFAULT '', AddedDate TEXT DEFAULT '');"
 
 echo "Creating btw_quarterly_payments table..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS btw_quarterly_payments (id INTEGER PRIMARY KEY AUTOINCREMENT, timeframe TEXT NOT NULL, quarter_months TEXT NOT NULL, latest_payment_date TEXT NOT NULL, payment_id TEXT, cost REAL NOT NULL, actual_payment_date TEXT, status TEXT DEFAULT 'pending', notes TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(timeframe));"
@@ -34,6 +34,21 @@ docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE I
 
 echo "Adding Category column to existing DebtRegister table (if missing)..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "ALTER TABLE DebtRegister ADD COLUMN Category TEXT DEFAULT 'General';" 2>/dev/null || echo "Category column already exists or table structure is correct"
+
+echo "Adding DueDate column to existing DebtRegister table (if missing)..."
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "ALTER TABLE DebtRegister ADD COLUMN DueDate TEXT DEFAULT '';" 2>/dev/null || echo "DueDate column already exists or table structure is correct"
+
+echo "Adding MinimumPayment column to existing DebtRegister table (if missing)..."
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "ALTER TABLE DebtRegister ADD COLUMN MinimumPayment REAL DEFAULT 0;" 2>/dev/null || echo "MinimumPayment column already exists or table structure is correct"
+
+echo "Adding InterestRate column to existing DebtRegister table (if missing)..."
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "ALTER TABLE DebtRegister ADD COLUMN InterestRate REAL DEFAULT 0;" 2>/dev/null || echo "InterestRate column already exists or table structure is correct"
+
+echo "Adding Notes column to existing DebtRegister table (if missing)..."
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "ALTER TABLE DebtRegister ADD COLUMN Notes TEXT DEFAULT '';" 2>/dev/null || echo "Notes column already exists or table structure is correct"
+
+echo "Adding AddedDate column to existing DebtRegister table (if missing)..."
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "ALTER TABLE DebtRegister ADD COLUMN AddedDate TEXT DEFAULT '';" 2>/dev/null || echo "AddedDate column already exists or table structure is correct"
 
 echo "Populating default quarterly BTW payments for 2025..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO btw_quarterly_payments (timeframe, quarter_months, latest_payment_date, cost, status) VALUES ('Q1 2025', 'Jan-Mar', '2025-04-30', 0.0, 'pending');"
@@ -48,9 +63,9 @@ echo "Checking for existing debt data to migrate..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "SELECT COUNT(*) as debt_count FROM DebtRegister;"
 
 echo "Adding sample debt data if none exists..."
-docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category) VALUES ('Sample Debt 1', 500.00, strftime('%s', 'now'), 500.00, 'General');"
-docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category) VALUES ('Sample Debt 2', 750.00, strftime('%s', 'now'), 750.00, 'Bills');"
-docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category) VALUES ('Sample Debt 3', 1200.00, strftime('%s', 'now'), 1200.00, 'Loans');"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category, DueDate, MinimumPayment, InterestRate, Notes, AddedDate) VALUES ('Sample Debt 1', 500.00, strftime('%s', 'now'), 500.00, 'General', '2025-12-31', 50.00, 5.5, 'Sample debt entry for testing', date('now'));"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category, DueDate, MinimumPayment, InterestRate, Notes, AddedDate) VALUES ('Sample Debt 2', 750.00, strftime('%s', 'now'), 750.00, 'Bills', '2025-11-30', 75.00, 3.2, 'Utility bill debt', date('now'));"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category, DueDate, MinimumPayment, InterestRate, Notes, AddedDate) VALUES ('Sample Debt 3', 1200.00, strftime('%s', 'now'), 1200.00, 'Loans', '2026-01-15', 120.00, 8.0, 'Personal loan payment', date('now'));"
 
 echo "Final debt count check..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "SELECT COUNT(*) as total_debts FROM DebtRegister;"
