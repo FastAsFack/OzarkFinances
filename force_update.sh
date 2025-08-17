@@ -9,6 +9,7 @@ cd ~/ozark-finances || exit 1
 
 # Pull latest changes from git
 echo "📥 Pulling latest changes from Git..."
+git remote set-url origin https://github.com/FastAsFack/OzarkFinances.git
 git pull origin Main
 
 # Stop the current container
