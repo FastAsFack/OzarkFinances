@@ -13,7 +13,10 @@ echo "Creating Invoices table..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Invoices (InvoiceID TEXT PRIMARY KEY, InvoiceDate TEXT NOT NULL, Excl REAL NOT NULL, BTW REAL NOT NULL, Incl REAL NOT NULL, status TEXT DEFAULT 'active', deleted_at TEXT NULL, payment_status TEXT DEFAULT 'pending');"
 
 echo "Creating Withdraw table..."
-docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Withdraw (Date TEXT NOT NULL, Amount REAL NOT NULL, Description TEXT DEFAULT '');"
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE TABLE IF NOT EXISTS Withdraw (id INTEGER PRIMARY KEY AUTOINCREMENT, Date TEXT NOT NULL, Amount REAL NOT NULL, Description TEXT DEFAULT '');"
+
+echo "Adding ID column to existing Withdraw table (if missing)..."
+docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "ALTER TABLE Withdraw ADD COLUMN id INTEGER PRIMARY KEY AUTOINCREMENT;" 2>/dev/null || echo "ID column already exists or table structure is correct"
 
 echo "Adding Description column to existing Withdraw table (if missing)..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "ALTER TABLE Withdraw ADD COLUMN Description TEXT DEFAULT '';" 2>/dev/null || echo "Description column already exists or table structure is correct"

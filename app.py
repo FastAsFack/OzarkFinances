@@ -1600,11 +1600,11 @@ def upload_withdraws():
                 
                 for line_num, line in enumerate(data_lines, 1):
                     if line.strip():
-                        # Use CSV reader to properly parse comma-delimited data
+                        # Use CSV reader to properly parse semicolon-delimited data (Knab format)
                         import csv
                         from io import StringIO
                         try:
-                            csv_reader = csv.reader(StringIO(line), delimiter=',')
+                            csv_reader = csv.reader(StringIO(line), delimiter=';')
                             parts = next(csv_reader)
                             
                             if len(parts) >= 3:
