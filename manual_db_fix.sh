@@ -62,11 +62,6 @@ docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "SELECT t
 echo "Checking for existing debt data to migrate..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "SELECT COUNT(*) as debt_count FROM DebtRegister;"
 
-echo "Adding sample debt data if none exists..."
-docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category, DueDate, MinimumPayment, InterestRate, Notes, AddedDate) VALUES ('Sample Debt 1', 500.00, strftime('%s', 'now'), 500.00, 'General', '2025-12-31', 50.00, 5.5, 'Sample debt entry for testing', date('now'));"
-docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category, DueDate, MinimumPayment, InterestRate, Notes, AddedDate) VALUES ('Sample Debt 2', 750.00, strftime('%s', 'now'), 750.00, 'Bills', '2025-11-30', 75.00, 3.2, 'Utility bill debt', date('now'));"
-docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "INSERT OR IGNORE INTO DebtRegister (DebtName, Amount, UnixStamp, OriginalDebt, Category, DueDate, MinimumPayment, InterestRate, Notes, AddedDate) VALUES ('Sample Debt 3', 1200.00, strftime('%s', 'now'), 1200.00, 'Loans', '2026-01-15', 120.00, 8.0, 'Personal loan payment', date('now'));"
-
 echo "Final debt count check..."
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "SELECT COUNT(*) as total_debts FROM DebtRegister;"
 docker compose exec ozark-finances sqlite3 /app/data/ozark_finances.db "CREATE INDEX IF NOT EXISTS idx_btw_payment_date ON btw_quarterly_payments(latest_payment_date);"
