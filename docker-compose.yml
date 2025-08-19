@@ -60,6 +60,12 @@ services:
         max-size: "10m"
         max-file: "3"
     
+    # Glance labels for service discovery
+    labels:
+      - "glance.name=Ozark Finances"
+      - "glance.url=http://192.168.1.153:4999"
+      - "glance.description=Personal finance management system with invoice tracking and BTW calculations"
+    
     # Network
     networks:
       - ozark-network
@@ -99,6 +105,12 @@ services:
         echo 'Backup completed at' $$(date);
       done
       "
+    
+    # Glance labels for backup service
+    labels:
+      - "glance.name=Ozark Backup Service"
+      - "glance.url=http://192.168.1.153:4999"
+      - "glance.description=Daily automated backup service for Ozark Finances data with 7-day retention"
     
     # Network
     networks:
