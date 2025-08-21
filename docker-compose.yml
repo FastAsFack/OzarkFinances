@@ -108,9 +108,9 @@ services:
     
     # Glance labels for backup service
     labels:
-      - "glance.name=Ozark Backup Service"
-      - "glance.url=http://192.168.1.153:4999"
-      - "glance.description=Daily automated backup service for Ozark Finances data with 7-day retention"
+      glance.name: Ozark Backup Service
+      glance.url: http://192.168.1.153:4999
+      glance.description: Daily automated backup service for Ozark Finances data with 7-day retention
     
     # Network
     networks:
