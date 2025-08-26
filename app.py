@@ -3176,55 +3176,98 @@ def process_excel_import(file_path):
         if imported_count == 0:
             logger.info("=== Template format not found, scanning all cells ===")
             
-            # Look for any numeric values that could be invoice numbers or amounts
-            potential_invoices = []
-            potential_amounts = []
+        # Method 2: Try scanning for specific pattern (only if no invoices imported yet)
+        if imported_count == 0:
+            logger.info("=== Template format not found, scanning for specific pattern ===")
             
+            # Look for invoice data using your specific pattern
+            found_invoice_number = None
+            found_invoice_date = None
+            found_amounts = None
+            
+            # Scan all cells for the pattern
             for row in range(1, min(51, worksheet.max_row + 1)):
                 for col in range(1, min(26, worksheet.max_column + 1)):
                     cell = worksheet.cell(row=row, column=col)
                     if cell.value is not None:
-                        # Check for potential invoice numbers (integers with 4+ digits)
-                        if isinstance(cell.value, (int, float)) and str(int(cell.value)).isdigit() and len(str(int(cell.value))) >= 4:
-                            potential_invoices.append((cell.coordinate, int(cell.value)))
+                        cell_value = str(cell.value).strip()
                         
-                        # Check for potential amounts (try to parse European format)
-                        parsed_val = parse_european_number(cell.value)
-                        if parsed_val is not None and 1 <= parsed_val <= 100000:
-                            potential_amounts.append((cell.coordinate, parsed_val))
-            
-            logger.info(f"Found {len(potential_invoices)} potential invoice numbers: {potential_invoices[:5]}")
-            logger.info(f"Found {len(potential_amounts)} potential amounts: {potential_amounts[:5]}")
-            
-            # Try to match invoice numbers with amounts
-            if potential_invoices and potential_amounts:
-                # Use the first potential combination
-                invoice_num = potential_invoices[0][1]
-                amount = potential_amounts[0][1]
+                        # Look for "Totaal" text
+                        if "totaal" in cell_value.lower():
+                            logger.info(f"Found 'Totaal' at {cell.coordinate}")
+                            
+                            # Look for 3 consecutive numbers below this cell
+                            amounts = []
+                            for i in range(1, 6):  # Check next 5 rows
+                                below_cell = worksheet.cell(row=row + i, column=col)
+                                if below_cell.value is not None:
+                                    parsed_amount = parse_european_number(below_cell.value)
+                                    if parsed_amount is not None and parsed_amount > 0:
+                                        amounts.append(parsed_amount)
+                                        logger.info(f"Found amount {parsed_amount} at {below_cell.coordinate}")
+                                        
+                                        # If we have 3 amounts, we found our pattern
+                                        if len(amounts) == 3:
+                                            found_amounts = amounts
+                                            logger.info(f"Found 3-amount pattern: Excl={amounts[0]}, BTW={amounts[1]}, Incl={amounts[2]}")
+                                            break
+                                else:
+                                    # Stop if we hit an empty cell
+                                    break
+                            
+                            if found_amounts:
+                                break
                 
-                logger.info(f"Attempting to import: Invoice {invoice_num}, Amount {amount}")
+                # Look for invoice number (year + sequence pattern like 250021)
+                if cell.value is not None and isinstance(cell.value, (int, float)):
+                    invoice_candidate = str(int(cell.value))
+                    # Check if it matches pattern: 6 digits starting with year (24, 25, 26, etc.)
+                    if len(invoice_candidate) == 6 and invoice_candidate.startswith(('24', '25', '26', '27', '28')):
+                        found_invoice_number = int(cell.value)
+                        logger.info(f"Found potential invoice number {found_invoice_number} at {cell.coordinate}")
+                
+                # Look for date in DD-MM-YYYY format
+                if cell.value is not None:
+                    cell_str = str(cell.value).strip()
+                    # Check for DD-MM-YYYY pattern
+                    import re
+                    date_pattern = re.match(r'^(\d{2})-(\d{2})-(\d{4})$', cell_str)
+                    if date_pattern:
+                        found_invoice_date = cell_str
+                        logger.info(f"Found date {found_invoice_date} at {cell.coordinate}")
+                
+                if found_amounts:
+                    break
+            
+            # If we found the pattern, import the invoice
+            if found_invoice_number and found_amounts and found_invoice_date:
+                logger.info(f"Complete pattern found - Invoice: {found_invoice_number}, Date: {found_invoice_date}, Amounts: {found_amounts}")
                 
                 # Check if invoice already exists
                 existing = db_manager.execute_query(
                     "SELECT COUNT(*) as count FROM Invoices WHERE InvoiceID = ?", 
-                    (str(int(invoice_num)),)
+                    (str(found_invoice_number),)
                 )
                 
                 if existing[0]['count'] == 0:
-                    btw = round(amount * 0.21, 2)
-                    incl = round(amount + btw, 2)
-                    current_date = datetime.now().strftime('%d-%m-%Y')
+                    # Use the amounts from the pattern
+                    amount_excl = found_amounts[0]  # First amount (excl BTW)
+                    btw_amount = found_amounts[1]   # Second amount (BTW)
+                    amount_incl = found_amounts[2]  # Third amount (incl BTW)
                     
                     db_manager.execute_update(
                         "INSERT INTO Invoices (InvoiceID, InvoiceDate, Excl, BTW, Incl) VALUES (?, ?, ?, ?, ?)",
-                        (str(int(invoice_num)), current_date, amount, btw, incl)
+                        (str(found_invoice_number), found_invoice_date, amount_excl, btw_amount, amount_incl)
                     )
                     imported_count += 1
-                    logger.info(f"Successfully imported scanned invoice {int(invoice_num)}: €{amount}")
+                    logger.info(f"Successfully imported pattern-based invoice {found_invoice_number}: €{amount_excl} (Excl)")
                 else:
-                    logger.info(f"Invoice {int(invoice_num)} already exists")
+                    logger.info(f"Invoice {found_invoice_number} already exists")
+            else:
+                logger.info("Pattern-based scanning did not find complete invoice data")
+                logger.info(f"Found - Invoice Number: {found_invoice_number}, Date: {found_invoice_date}, Amounts: {found_amounts}")
         else:
-            logger.info("=== Skipping cell scanning - invoice already imported from template format ===")
+            logger.info("=== Skipping pattern scanning - invoice already imported from template format ===")
         
         return imported_count
         
