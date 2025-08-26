@@ -3172,10 +3172,6 @@ def process_excel_import(file_path):
                 except (ValueError, TypeError) as e:
                     logger.error(f"Error processing F43 data: {e}")
         
-        # Method 2: Try scanning all cells for data (only if no invoices imported yet)
-        if imported_count == 0:
-            logger.info("=== Template format not found, scanning all cells ===")
-            
         # Method 2: Try scanning for specific pattern (only if no invoices imported yet)
         if imported_count == 0:
             logger.info("=== Template format not found, scanning for specific pattern ===")
@@ -3185,7 +3181,30 @@ def process_excel_import(file_path):
             found_invoice_date = None
             found_amounts = None
             
-            # Scan all cells for the pattern
+            # First pass: look for invoice number and date
+            for row in range(1, min(51, worksheet.max_row + 1)):
+                for col in range(1, min(26, worksheet.max_column + 1)):
+                    cell = worksheet.cell(row=row, column=col)
+                    if cell.value is not None:
+                        
+                        # Look for invoice number (year + sequence pattern like 250024)
+                        if isinstance(cell.value, (int, float)):
+                            invoice_candidate = str(int(cell.value))
+                            # Check if it matches pattern: 6 digits starting with year (24, 25, 26, etc.)
+                            if len(invoice_candidate) == 6 and invoice_candidate.startswith(('24', '25', '26', '27', '28')):
+                                found_invoice_number = int(cell.value)
+                                logger.info(f"Found potential invoice number {found_invoice_number} at {cell.coordinate}")
+                        
+                        # Look for date in DD-MM-YYYY format
+                        cell_str = str(cell.value).strip()
+                        # Check for DD-MM-YYYY pattern
+                        import re
+                        date_pattern = re.match(r'^(\d{2})-(\d{2})-(\d{4})$', cell_str)
+                        if date_pattern:
+                            found_invoice_date = cell_str
+                            logger.info(f"Found date {found_invoice_date} at {cell.coordinate}")
+            
+            # Second pass: look for "Totaal" and amount pattern
             for row in range(1, min(51, worksheet.max_row + 1)):
                 for col in range(1, min(26, worksheet.max_column + 1)):
                     cell = worksheet.cell(row=row, column=col)
@@ -3198,7 +3217,7 @@ def process_excel_import(file_path):
                             
                             # Look for 3 consecutive numbers below this cell
                             amounts = []
-                            for i in range(1, 6):  # Check next 5 rows
+                            for i in range(1, 8):  # Check next 7 rows
                                 below_cell = worksheet.cell(row=row + i, column=col)
                                 if below_cell.value is not None:
                                     parsed_amount = parse_european_number(below_cell.value)
@@ -3211,31 +3230,17 @@ def process_excel_import(file_path):
                                             found_amounts = amounts
                                             logger.info(f"Found 3-amount pattern: Excl={amounts[0]}, BTW={amounts[1]}, Incl={amounts[2]}")
                                             break
-                                else:
-                                    # Stop if we hit an empty cell
-                                    break
+                                    else:
+                                        # If we find a non-number, reset the amounts list
+                                        # unless we already have at least one amount
+                                        if len(amounts) == 0:
+                                            continue
+                                        else:
+                                            break
                             
                             if found_amounts:
                                 break
-                
-                # Look for invoice number (year + sequence pattern like 250021)
-                if cell.value is not None and isinstance(cell.value, (int, float)):
-                    invoice_candidate = str(int(cell.value))
-                    # Check if it matches pattern: 6 digits starting with year (24, 25, 26, etc.)
-                    if len(invoice_candidate) == 6 and invoice_candidate.startswith(('24', '25', '26', '27', '28')):
-                        found_invoice_number = int(cell.value)
-                        logger.info(f"Found potential invoice number {found_invoice_number} at {cell.coordinate}")
-                
-                # Look for date in DD-MM-YYYY format
-                if cell.value is not None:
-                    cell_str = str(cell.value).strip()
-                    # Check for DD-MM-YYYY pattern
-                    import re
-                    date_pattern = re.match(r'^(\d{2})-(\d{2})-(\d{4})$', cell_str)
-                    if date_pattern:
-                        found_invoice_date = cell_str
-                        logger.info(f"Found date {found_invoice_date} at {cell.coordinate}")
-                
+                    
                 if found_amounts:
                     break
             
