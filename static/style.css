@@ -735,6 +735,7 @@ code {
     .mobile-invoice-secondary-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
         gap: 0.5rem;
     }
 
@@ -742,6 +743,7 @@ code {
         padding: 0.5rem;
         font-size: 0.875rem;
         border-radius: 6px;
+        width: 100%;
     }
 
     /* Portrait mode specific optimizations for invoices */
@@ -751,13 +753,16 @@ code {
             gap: 0.5rem;
         }
         
+        /* Keep 2x2 grid even in portrait mode for better space usage */
         .mobile-invoice-secondary-actions {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 0.4rem;
         }
         
         .mobile-invoice-secondary-actions .btn {
-            width: 100%;
-            margin-bottom: 0.25rem;
+            font-size: 0.8rem;
+            padding: 0.4rem;
         }
     }
 
