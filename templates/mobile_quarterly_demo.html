@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}Mobile Quarterly Demo - Ozark Finances{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-mobile-alt me-2"></i>Mobile Quarterly Payments Demo
+        </h1>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            This demo shows how the quarterly payments look on different screen sizes and orientations.
+            <strong>Resize your browser window or view on different devices to see the responsive behavior.</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Responsive Demo Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-euro-sign me-2"></i>Dutch BTW Quarterly Payments
+                    <span class="badge bg-primary ms-2">Responsive Demo</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <!-- Desktop Table View -->
+                <div class="quarterly-table-desktop">
+                    <div class="alert alert-success m-3">
+                        <i class="fas fa-desktop me-2"></i><strong>Desktop View:</strong> Full table layout with all columns visible
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">Timeframe</th>
+                                    <th style="width: 15%;">Quarter</th>
+                                    <th style="width: 15%;">Latest Payment Date</th>
+                                    <th style="width: 15%;">Payment ID</th>
+                                    <th style="width: 15%;">Cost</th>
+                                    <th style="width: 15%;">Actual Payment Date</th>
+                                    <th style="width: 10%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Sample Q1 2025 - Paid -->
+                                <tr class="btw-payment-row">
+                                    <td><strong>Q1 2025</strong></td>
+                                    <td><span class="text-info">Jan-Mar</span></td>
+                                    <td><span class="text-warning">2025-04-30</span></td>
+                                    <td><span class="badge bg-info">1234 5678 9012</span></td>
+                                    <td><strong>€2,450.00</strong><br><small class="text-muted">Auto: €2,380.50</small></td>
+                                    <td><span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>2025-04-15</span></td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm">
+                                            <span class="badge bg-success mb-1"><i class="fas fa-check-circle me-1"></i>Paid</span>
+                                            <button type="button" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-undo"></i> Reverse
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Sample Q2 2025 - Overdue -->
+                                <tr class="btw-payment-row">
+                                    <td><strong>Q2 2025</strong></td>
+                                    <td><span class="text-info">Apr-Jun</span></td>
+                                    <td><span class="text-danger">2025-07-31</span><br><small class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Overdue</small></td>
+                                    <td><span class="text-muted">Not Set</span></td>
+                                    <td><strong>€1,875.00</strong><br><small class="text-muted">Auto: €1,875.00</small></td>
+                                    <td><span class="badge bg-danger"><i class="fas fa-times me-1"></i>Not Paid</span></td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm">
+                                            <button type="button" class="btn btn-outline-info"><i class="fas fa-edit"></i></button>
+                                            <button type="button" class="btn btn-outline-warning"><i class="fas fa-calculator"></i></button>
+                                            <button type="button" class="btn btn-outline-success"><i class="fas fa-check"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Sample Q3 2025 - Due -->
+                                <tr class="btw-payment-row">
+                                    <td><strong>Q3 2025</strong></td>
+                                    <td><span class="text-info">Jul-Sep</span></td>
+                                    <td><span class="text-warning">2025-10-31</span><br><small class="text-muted"><i class="fas fa-clock me-1"></i>Due</small></td>
+                                    <td><span class="text-muted">Not Set</span></td>
+                                    <td><strong>€0.00</strong><br><small class="text-muted">Auto: €2,125.75</small></td>
+                                    <td><span class="badge bg-danger"><i class="fas fa-times me-1"></i>Not Paid</span></td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm">
+                                            <button type="button" class="btn btn-outline-info"><i class="fas fa-edit"></i></button>
+                                            <button type="button" class="btn btn-outline-warning"><i class="fas fa-calculator"></i></button>
+                                            <button type="button" class="btn btn-outline-success"><i class="fas fa-check"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Mobile Card View -->
+                <div class="quarterly-cards-mobile p-3">
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-mobile-alt me-2"></i><strong>Mobile View:</strong> Card-based layout optimized for touch interaction
+                    </div>
+                    
+                    <!-- Sample Q1 2025 - Paid -->
+                    <div class="mobile-quarterly-card">
+                        <div class="mobile-quarterly-header">
+                            <div class="mobile-quarterly-title">Q1 2025</div>
+                            <div class="mobile-quarterly-quarter">Jan-Mar</div>
+                        </div>
+                        
+                        <div class="mobile-quarterly-status paid">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Paid on 2025-04-15
+                        </div>
+                        
+                        <div class="mobile-quarterly-content">
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Payment ID</div>
+                                <div class="mobile-quarterly-value">
+                                    <span class="badge bg-info">1234 5678 9012</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Cost</div>
+                                <div class="mobile-quarterly-value">
+                                    <strong>€2,450.00</strong>
+                                    <small class="text-muted d-block">Auto: €2,380.50</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mobile-quarterly-actions">
+                            <button type="button" class="btn btn-outline-danger">
+                                <i class="fas fa-undo me-1"></i>Reverse Payment
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample Q2 2025 - Overdue -->
+                    <div class="mobile-quarterly-card">
+                        <div class="mobile-quarterly-header">
+                            <div class="mobile-quarterly-title">Q2 2025</div>
+                            <div class="mobile-quarterly-quarter">Apr-Jun</div>
+                        </div>
+                        
+                        <div class="mobile-quarterly-status overdue">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Overdue (Due: 2025-07-31)
+                        </div>
+                        
+                        <div class="mobile-quarterly-content">
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Payment ID</div>
+                                <div class="mobile-quarterly-value">
+                                    <span class="text-muted">Not Set</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Cost</div>
+                                <div class="mobile-quarterly-value">
+                                    <strong>€1,875.00</strong>
+                                    <small class="text-muted d-block">Auto: €1,875.00</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Payment Date</div>
+                                <div class="mobile-quarterly-value">
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times me-1"></i>Not Set
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mobile-quarterly-actions">
+                            <button type="button" class="btn btn-outline-info">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-warning">
+                                <i class="fas fa-calculator me-1"></i>Auto
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-success">
+                                <i class="fas fa-check me-1"></i>Pay
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample Q3 2025 - Due -->
+                    <div class="mobile-quarterly-card">
+                        <div class="mobile-quarterly-header">
+                            <div class="mobile-quarterly-title">Q3 2025</div>
+                            <div class="mobile-quarterly-quarter">Jul-Sep</div>
+                        </div>
+                        
+                        <div class="mobile-quarterly-status unpaid">
+                            <i class="fas fa-clock me-2"></i>
+                            Due: 2025-10-31
+                        </div>
+                        
+                        <div class="mobile-quarterly-content">
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Payment ID</div>
+                                <div class="mobile-quarterly-value">
+                                    <span class="text-muted">Not Set</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Cost</div>
+                                <div class="mobile-quarterly-value">
+                                    <strong>€0.00</strong>
+                                    <small class="text-success d-block">Auto: €2,125.75</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Payment Date</div>
+                                <div class="mobile-quarterly-value">
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times me-1"></i>Not Set
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mobile-quarterly-actions">
+                            <button type="button" class="btn btn-outline-info">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-warning">
+                                <i class="fas fa-calculator me-1"></i>Auto
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-success">
+                                <i class="fas fa-check me-1"></i>Pay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Explanation -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-success">
+                <h6 class="mb-0 text-white">
+                    <i class="fas fa-check-circle me-2"></i>Portrait Mode Improvements
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-mobile-alt text-success me-2"></i><strong>Card Layout:</strong> Mobile-optimized cards instead of table</li>
+                    <li><i class="fas fa-expand-arrows-alt text-success me-2"></i><strong>Single Column:</strong> Fields stack vertically in portrait mode</li>
+                    <li><i class="fas fa-hand-pointer text-success me-2"></i><strong>Touch-Friendly:</strong> Large buttons for easy interaction</li>
+                    <li><i class="fas fa-eye text-success me-2"></i><strong>Visual Status:</strong> Color-coded status indicators with animations</li>
+                    <li><i class="fas fa-compress-alt text-success me-2"></i><strong>Space Efficient:</strong> Compact design for small screens</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-info">
+                <h6 class="mb-0 text-white">
+                    <i class="fas fa-landscape me-2"></i>Landscape Mode Optimizations
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-columns text-info me-2"></i><strong>Multi-Column:</strong> 3-column grid layout for better space usage</li>
+                    <li><i class="fas fa-arrows-alt-h text-info me-2"></i><strong>Horizontal Actions:</strong> Buttons arranged side-by-side</li>
+                    <li><i class="fas fa-desktop text-info me-2"></i><strong>Desktop-Like:</strong> More information visible at once</li>
+                    <li><i class="fas fa-expand text-info me-2"></i><strong>Wide Content:</strong> Takes advantage of horizontal space</li>
+                    <li><i class="fas fa-balance-scale text-info me-2"></i><strong>Balanced:</strong> Optimal use of available screen real estate</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Technical Details -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h6 class="mb-0 text-dark">
+                    <i class="fas fa-code me-2"></i>Technical Implementation Details
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-primary">CSS Media Queries:</h6>
+                        <ul class="small">
+                            <li><code>@media (max-width: 768px)</code> - Hide table, show cards</li>
+                            <li><code>@media (orientation: portrait)</code> - Single column layout</li>
+                            <li><code>@media (orientation: landscape)</code> - Multi-column layout</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-primary">Layout Features:</h6>
+                        <ul class="small">
+                            <li>CSS Grid for responsive field layout</li>
+                            <li>Flexbox for button arrangements</li>
+                            <li>Bootstrap responsive utilities</li>
+                            <li>Custom breakpoints for better control</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-primary">Visual Enhancements:</h6>
+                        <ul class="small">
+                            <li>Gradient backgrounds for status indicators</li>
+                            <li>Pulsing animation for overdue items</li>
+                            <li>Touch-friendly button sizing</li>
+                            <li>Improved color contrast</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Demo functionality - show current viewport info
+    function updateViewportInfo() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const orientation = width > height ? 'landscape' : 'portrait';
+        
+        console.log(`Viewport: ${width}x${height} (${orientation})`);
+        
+        // You could add a live viewport indicator here if needed
+    }
+    
+    // Update on resize
+    window.addEventListener('resize', updateViewportInfo);
+    updateViewportInfo();
+    
+    // Add some interactive feedback
+    const buttons = document.querySelectorAll('.mobile-quarterly-actions .btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const action = this.textContent.trim();
+            alert(`Demo: ${action} action clicked!\n\nIn the real application, this would trigger the corresponding functionality.`);
+        });
+    });
+});
+</script>
+{% endblock %}

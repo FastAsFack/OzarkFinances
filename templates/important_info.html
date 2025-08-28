@@ -21,127 +21,245 @@
                 </h5>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-dark table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th style="width: 15%;">Timeframe</th>
-                                <th style="width: 15%;">Quarter</th>
-                                <th style="width: 15%;">Latest Payment Date</th>
-                                <th style="width: 15%;">Payment ID</th>
-                                <th style="width: 15%;">Cost</th>
-                                <th style="width: 15%;">Actual Payment Date</th>
-                                <th style="width: 10%;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for payment in btw_payments %}
-                            <tr class="btw-payment-row">
-                                <td>
-                                    <strong>{{ payment.timeframe }}</strong>
-                                </td>
-                                <td>
-                                    <span class="text-info">{{ payment.quarter_months }}</span>
-                                </td>
-                                <td>
-                                    <span class="text-warning">{{ payment.latest_payment_date }}</span>
-                                    {% if payment.latest_payment_date < today and payment.status != 'paid' %}
-                                        <br><small class="text-danger">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>Overdue
+                <!-- Desktop Table View -->
+                <div class="quarterly-table-desktop">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">Timeframe</th>
+                                    <th style="width: 15%;">Quarter</th>
+                                    <th style="width: 15%;">Latest Payment Date</th>
+                                    <th style="width: 15%;">Payment ID</th>
+                                    <th style="width: 15%;">Cost</th>
+                                    <th style="width: 15%;">Actual Payment Date</th>
+                                    <th style="width: 10%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in btw_payments %}
+                                <tr class="btw-payment-row">
+                                    <td>
+                                        <strong>{{ payment.timeframe }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="text-info">{{ payment.quarter_months }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-warning">{{ payment.latest_payment_date }}</span>
+                                        {% if payment.latest_payment_date < today and payment.status != 'paid' %}
+                                            <br><small class="text-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Overdue
+                                            </small>
+                                        {% elif payment.status != 'paid' %}
+                                            <br><small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>Due
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="payment-id-display" id="payment-id-{{ payment.id }}">
+                                            {{ format_payment_id(payment.payment_id) }}
+                                        </span>
+                                        <input type="text" class="form-control form-control-sm payment-id-input d-none" 
+                                               id="payment-id-input-{{ payment.id }}" 
+                                               value="{{ payment.payment_id or '' }}" 
+                                               placeholder="Enter Payment ID">
+                                    </td>
+                                    <td>
+                                        <span class="cost-display" id="cost-{{ payment.id }}">
+                                            {{ format_euro(payment.cost) }}
+                                        </span>
+                                        <input type="number" class="form-control form-control-sm cost-input d-none" 
+                                               id="cost-input-{{ payment.id }}" 
+                                               value="{{ payment.cost }}" 
+                                               step="0.01" min="0"
+                                               placeholder="0.00">
+                                        <br>
+                                        <small class="text-muted">
+                                            Auto: {{ format_euro(quarter_calculations.get(payment.timeframe, 0)) }}
                                         </small>
-                                    {% elif payment.status != 'paid' %}
-                                        <br><small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i>Due
-                                        </small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="payment-id-display" id="payment-id-{{ payment.id }}">
+                                    </td>
+                                    <td>
+                                        {% if payment.status == 'paid' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                {{ payment.actual_payment_date }}
+                                            </span>
+                                        {% else %}
+                                            <span class="actual-date-display" id="actual-date-{{ payment.id }}">
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times me-1"></i>Not Paid
+                                                </span>
+                                            </span>
+                                            <input type="date" class="form-control form-control-sm actual-date-input d-none" 
+                                                   id="actual-date-input-{{ payment.id }}" 
+                                                   value="{{ payment.actual_payment_date or '' }}">
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm" role="group">
+                                            {% if payment.status != 'paid' %}
+                                                <!-- Edit/Save Button -->
+                                                <button type="button" class="btn btn-outline-info btn-edit" 
+                                                        data-payment-id="{{ payment.id }}"
+                                                        title="Edit payment details">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                
+                                                <!-- Auto Calculate Button -->
+                                                <button type="button" class="btn btn-outline-warning btn-sm" 
+                                                        title="Auto-calculate BTW from invoices"
+                                                        onclick="confirmAutoCalculate({{ payment.id }})">
+                                                    <i class="fas fa-calculator"></i>
+                                                </button>
+                                                
+                                                <!-- Mark as Paid Button -->
+                                                <form method="POST" action="{{ url_for('mark_btw_paid', payment_id=payment.id) }}" 
+                                                      style="display: inline;">
+                                                    <button type="button" class="btn btn-outline-success btn-sm" 
+                                                            title="Mark as paid today"
+                                                            onclick="confirmMarkPaid({{ payment.id }})">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <span class="badge bg-success mb-1">
+                                                    <i class="fas fa-check-circle me-1"></i>Paid
+                                                </span>
+                                                
+                                                <!-- Reverse Payment Button -->
+                                                <form method="POST" action="{{ url_for('reverse_btw_payment', payment_id=payment.id) }}" 
+                                                      style="display: inline;">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                            title="Reverse payment (mark as unpaid)"
+                                                            onclick="confirmReverseBtwPayment({{ payment.id }})">
+                                                        <i class="fas fa-undo"></i> Reverse
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Mobile Card View -->
+                <div class="quarterly-cards-mobile p-3">
+                    {% for payment in btw_payments %}
+                    <div class="mobile-quarterly-card">
+                        <!-- Header -->
+                        <div class="mobile-quarterly-header">
+                            <div class="mobile-quarterly-title">{{ payment.timeframe }}</div>
+                            <div class="mobile-quarterly-quarter">{{ payment.quarter_months }}</div>
+                        </div>
+                        
+                        <!-- Status -->
+                        {% if payment.status == 'paid' %}
+                            <div class="mobile-quarterly-status paid">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Paid on {{ payment.actual_payment_date }}
+                            </div>
+                        {% elif payment.latest_payment_date < today %}
+                            <div class="mobile-quarterly-status overdue">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Overdue (Due: {{ payment.latest_payment_date }})
+                            </div>
+                        {% else %}
+                            <div class="mobile-quarterly-status unpaid">
+                                <i class="fas fa-clock me-2"></i>
+                                Due: {{ payment.latest_payment_date }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Content -->
+                        <div class="mobile-quarterly-content">
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Payment ID</div>
+                                <div class="mobile-quarterly-value">
+                                    <span class="payment-id-display" id="mobile-payment-id-{{ payment.id }}">
                                         {{ format_payment_id(payment.payment_id) }}
                                     </span>
                                     <input type="text" class="form-control form-control-sm payment-id-input d-none" 
-                                           id="payment-id-input-{{ payment.id }}" 
+                                           id="mobile-payment-id-input-{{ payment.id }}" 
                                            value="{{ payment.payment_id or '' }}" 
                                            placeholder="Enter Payment ID">
-                                </td>
-                                <td>
-                                    <span class="cost-display" id="cost-{{ payment.id }}">
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Cost</div>
+                                <div class="mobile-quarterly-value">
+                                    <span class="cost-display" id="mobile-cost-{{ payment.id }}">
                                         {{ format_euro(payment.cost) }}
                                     </span>
                                     <input type="number" class="form-control form-control-sm cost-input d-none" 
-                                           id="cost-input-{{ payment.id }}" 
+                                           id="mobile-cost-input-{{ payment.id }}" 
                                            value="{{ payment.cost }}" 
                                            step="0.01" min="0"
                                            placeholder="0.00">
-                                    <br>
-                                    <small class="text-muted">
+                                    <small class="text-muted d-block">
                                         Auto: {{ format_euro(quarter_calculations.get(payment.timeframe, 0)) }}
                                     </small>
-                                </td>
-                                <td>
-                                    {% if payment.status == 'paid' %}
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check-circle me-1"></i>
-                                            {{ payment.actual_payment_date }}
+                                </div>
+                            </div>
+                            
+                            {% if payment.status != 'paid' %}
+                            <div class="mobile-quarterly-field">
+                                <div class="mobile-quarterly-label">Payment Date</div>
+                                <div class="mobile-quarterly-value">
+                                    <span class="actual-date-display" id="mobile-actual-date-{{ payment.id }}">
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>Not Set
                                         </span>
-                                    {% else %}
-                                        <span class="actual-date-display" id="actual-date-{{ payment.id }}">
-                                            <span class="badge bg-danger">
-                                                <i class="fas fa-times me-1"></i>Not Paid
-                                            </span>
-                                        </span>
-                                        <input type="date" class="form-control form-control-sm actual-date-input d-none" 
-                                               id="actual-date-input-{{ payment.id }}" 
-                                               value="{{ payment.actual_payment_date or '' }}">
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group-vertical btn-group-sm" role="group">
-                                        {% if payment.status != 'paid' %}
-                                            <!-- Edit/Save Button -->
-                                            <button type="button" class="btn btn-outline-info btn-edit" 
-                                                    data-payment-id="{{ payment.id }}"
-                                                    title="Edit payment details">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            
-                                            <!-- Auto Calculate Button -->
-                                            <button type="button" class="btn btn-outline-warning btn-sm" 
-                                                    title="Auto-calculate BTW from invoices"
-                                                    onclick="confirmAutoCalculate({{ payment.id }})">
-                                                <i class="fas fa-calculator"></i>
-                                            </button>
-                                            
-                                            <!-- Mark as Paid Button -->
-                                            <form method="POST" action="{{ url_for('mark_btw_paid', payment_id=payment.id) }}" 
-                                                  style="display: inline;">
-                                                <button type="button" class="btn btn-outline-success btn-sm" 
-                                                        title="Mark as paid today"
-                                                        onclick="confirmMarkPaid({{ payment.id }})">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <span class="badge bg-success mb-1">
-                                                <i class="fas fa-check-circle me-1"></i>Paid
-                                            </span>
-                                            
-                                            <!-- Reverse Payment Button -->
-                                            <form method="POST" action="{{ url_for('reverse_btw_payment', payment_id=payment.id) }}" 
-                                                  style="display: inline;">
-                                                <button type="button" class="btn btn-outline-danger btn-sm" 
-                                                        title="Reverse payment (mark as unpaid)"
-                                                        onclick="confirmReverseBtwPayment({{ payment.id }})">
-                                                    <i class="fas fa-undo"></i> Reverse
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </span>
+                                    <input type="date" class="form-control form-control-sm actual-date-input d-none" 
+                                           id="mobile-actual-date-input-{{ payment.id }}" 
+                                           value="{{ payment.actual_payment_date or '' }}">
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="mobile-quarterly-actions">
+                            {% if payment.status != 'paid' %}
+                                <button type="button" class="btn btn-outline-info btn-edit" 
+                                        data-payment-id="{{ payment.id }}"
+                                        title="Edit payment details">
+                                    <i class="fas fa-edit me-1"></i>Edit
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-warning" 
+                                        title="Auto-calculate BTW from invoices"
+                                        onclick="confirmAutoCalculate({{ payment.id }})">
+                                    <i class="fas fa-calculator me-1"></i>Auto
+                                </button>
+                                
+                                <form method="POST" action="{{ url_for('mark_btw_paid', payment_id=payment.id) }}" 
+                                      style="display: inline;">
+                                    <button type="button" class="btn btn-outline-success" 
+                                            title="Mark as paid today"
+                                            onclick="confirmMarkPaid({{ payment.id }})">
+                                        <i class="fas fa-check me-1"></i>Pay
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('reverse_btw_payment', payment_id=payment.id) }}" 
+                                      style="display: inline;">
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            title="Reverse payment (mark as unpaid)"
+                                            onclick="confirmReverseBtwPayment({{ payment.id }})">
+                                        <i class="fas fa-undo me-1"></i>Reverse Payment
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

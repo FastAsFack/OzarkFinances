@@ -1781,6 +1781,11 @@ def important_info():
                              format_payment_id=format_payment_id,
                              today=datetime.now().strftime('%Y-%m-%d'))
 
+@app.route('/mobile-quarterly-demo')
+def mobile_quarterly_demo():
+    """Demo page showing mobile quarterly payments layout"""
+    return render_template('mobile_quarterly_demo.html')
+
 @app.route('/test-dialogs')
 def test_dialogs():
     """Test page for custom dialogs"""
