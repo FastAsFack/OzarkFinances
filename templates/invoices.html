@@ -657,7 +657,8 @@
                     
                     {% for invoice in invoices %}
                     <div class="mobile-invoice-card" data-invoice-id="{{ invoice.InvoiceID }}">
-                        <div class="mobile-card-header">
+                        <!-- Improved Header -->
+                        <div class="mobile-invoice-header">
                             <div class="d-flex align-items-center">
                                 <div class="form-check me-3">
                                     <input class="form-check-input invoice-checkbox" type="checkbox" 
@@ -665,80 +666,76 @@
                                            id="mobile-invoice-{{ invoice.InvoiceID }}"
                                            onchange="updateBulkActions()">
                                 </div>
-                                <div class="mobile-card-title">
+                                <div class="mobile-invoice-number">
                                     <i class="fas fa-receipt me-2"></i>{{ invoice.InvoiceID }}
                                 </div>
                             </div>
-                            <div class="mobile-card-badge">
+                            <div class="mobile-invoice-status {{ 'paid' if (invoice.payment_status or 'pending') == 'paid' else 'unpaid' }}">
                                 {% set payment_status = invoice.payment_status or 'pending' %}
                                 {% if payment_status == 'paid' %}
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check-circle me-1"></i>Paid
-                                    </span>
+                                    <i class="fas fa-check-circle me-1"></i>Paid
                                 {% elif payment_status == 'pending' %}
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-clock me-1"></i>Pending
-                                    </span>
+                                    <i class="fas fa-clock me-1"></i>Pending
                                 {% elif payment_status == 'overdue' %}
-                                    <span class="badge bg-danger">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>Overdue
-                                    </span>
-                                {% elif payment_status == 'draft' %}
-                                    <span class="badge bg-secondary">
-                                        <i class="fas fa-edit me-1"></i>Draft
-                                    </span>
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Overdue
                                 {% else %}
-                                    <span class="badge bg-secondary">{{ payment_status.title() }}</span>
+                                    {{ payment_status.title() }}
                                 {% endif %}
                             </div>
                         </div>
                         
-                        <div class="mobile-card-details">
-                            <div class="mobile-card-detail">
-                                <div class="mobile-card-label">Date</div>
-                                <div class="mobile-card-value">{{ invoice.InvoiceDate }}</div>
+                        <!-- Improved Content Grid -->
+                        <div class="mobile-invoice-content">
+                            <div class="mobile-invoice-field">
+                                <div class="mobile-invoice-label">Date</div>
+                                <div class="mobile-invoice-value">{{ invoice.InvoiceDate }}</div>
                             </div>
-                            <div class="mobile-card-detail">
-                                <div class="mobile-card-label">Total Amount</div>
-                                <div class="mobile-card-value">
-                                    <strong>{{ format_euro(invoice.Incl) }}</strong>
-                                </div>
+                            <div class="mobile-invoice-field">
+                                <div class="mobile-invoice-label">Total Amount</div>
+                                <div class="mobile-invoice-value highlight">{{ format_euro(invoice.Incl) }}</div>
                             </div>
-                            <div class="mobile-card-detail">
-                                <div class="mobile-card-label">Excl BTW</div>
-                                <div class="mobile-card-value">{{ format_euro(invoice.Excl) }}</div>
+                            <div class="mobile-invoice-field">
+                                <div class="mobile-invoice-label">Excl. BTW</div>
+                                <div class="mobile-invoice-value">{{ format_euro(invoice.Excl) }}</div>
                             </div>
-                            <div class="mobile-card-detail">
-                                <div class="mobile-card-label">BTW</div>
-                                <div class="mobile-card-value">{{ format_euro(invoice.BTW) }}</div>
+                            <div class="mobile-invoice-field">
+                                <div class="mobile-invoice-label">BTW</div>
+                                <div class="mobile-invoice-value">{{ format_euro(invoice.BTW) }}</div>
                             </div>
                         </div>
                         
-                        <div class="mobile-card-actions">
-                            <a href="{{ url_for('edit_invoice', invoice_id=invoice.InvoiceID) }}" 
-                               class="btn btn-primary btn-sm">
-                                <i class="fas fa-edit me-1"></i>Edit
-                            </a>
-                            <a href="{{ url_for('download_invoice', invoice_id=invoice.InvoiceID) }}" 
-                               class="btn btn-success btn-sm">
-                                <i class="fas fa-download me-1"></i>Download
-                            </a>
-                            <button class="btn btn-info btn-sm" onclick="viewInvoiceDetails('{{ invoice.InvoiceID }}')">
-                                <i class="fas fa-eye me-1"></i>View
-                            </button>
-                            
-                            <!-- Payment Status buttons based on current status -->
+                        <!-- Button Layout Following Sketch -->
+                        <div class="mobile-invoice-actions">
+                            <!-- Main Action Button (Mark Paid) -->
                             {% set payment_status = invoice.payment_status or 'pending' %}
                             {% if payment_status != 'paid' %}
-                                <button class="btn btn-success btn-sm" 
+                                <button class="btn btn-success mobile-invoice-primary-action" 
                                         onclick="confirmMarkInvoicePaid('{{ invoice.InvoiceID }}')">
-                                    <i class="fas fa-check me-1"></i>Mark Paid
+                                    <i class="fas fa-check me-2"></i>Mark as Paid
                                 </button>
+                            {% else %}
+                                <div class="btn btn-success mobile-invoice-primary-action disabled">
+                                    <i class="fas fa-check-circle me-2"></i>Already Paid
+                                </div>
                             {% endif %}
                             
-                            <button class="btn btn-secondary btn-sm" onclick="confirmMoveInvoiceToBin('{{ invoice.InvoiceID }}')">
-                                <i class="fas fa-trash-alt me-1"></i>Bin
-                            </button>
+                            <!-- Secondary Actions in 2x1 Grid -->
+                            <div class="mobile-invoice-secondary-actions">
+                                <a href="{{ url_for('edit_invoice', invoice_id=invoice.InvoiceID) }}" 
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-edit me-1"></i>Edit
+                                </a>
+                                <a href="{{ url_for('download_invoice', invoice_id=invoice.InvoiceID) }}" 
+                                   class="btn btn-outline-success">
+                                    <i class="fas fa-download me-1"></i>Download
+                                </a>
+                                <button class="btn btn-outline-info" onclick="viewInvoiceDetails('{{ invoice.InvoiceID }}')">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="confirmMoveInvoiceToBin('{{ invoice.InvoiceID }}')">
+                                    <i class="fas fa-trash-alt me-1"></i>Bin
+                                </button>
+                            </div>
                         </div>
                     </div>
                     {% else %}
