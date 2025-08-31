@@ -99,11 +99,16 @@ def internal_server_error(error):
 @app.errorhandler(404)
 def not_found_error(error):
     """Handle 404 errors"""
-    discord_logger.log_user_action(
-        action="404 Page Not Found",
-        ip=request.remote_addr,
-        details={"path": request.path, "method": request.method}
-    )
+    # Filter out common browser requests that aren't actual user errors
+    ignored_paths = ['/favicon.ico', '/robots.txt', '/apple-touch-icon.png', '/apple-touch-icon-precomposed.png']
+    
+    if request.path not in ignored_paths:
+        discord_logger.log_user_action(
+            action="404 Page Not Found",
+            ip=request.remote_addr,
+            details={"path": request.path, "method": request.method}
+        )
+    
     return render_template('error.html', error_code=404, error_message="Page Not Found"), 404
 
 class DatabaseManager:
@@ -412,6 +417,11 @@ def health_check():
             }
         }
         return jsonify(error_status), 503
+
+@app.route('/favicon.ico')
+def favicon():
+    """Serve a simple favicon to prevent 404 errors"""
+    return '', 204
 
 @app.route('/')
 def index():
