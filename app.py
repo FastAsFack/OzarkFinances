@@ -20,6 +20,7 @@ import tempfile
 import zipfile
 from werkzeug.utils import secure_filename
 from audit_tracker import audit_tracker, audit_log, audit_transaction
+from discord_logger import discord_logger, log_errors, log_activity
 import math
 import statistics
 
@@ -84,6 +85,26 @@ def strptime_filter(date_str, format):
 def now():
     """Return current datetime"""
     return datetime.now()
+
+# Error handlers for Discord logging
+@app.errorhandler(500)
+def internal_server_error(error):
+    """Handle internal server errors"""
+    discord_logger.log_critical_error(
+        message="500 Internal Server Error",
+        details=str(error)
+    )
+    return render_template('error.html', error_code=500, error_message="Internal Server Error"), 500
+
+@app.errorhandler(404)
+def not_found_error(error):
+    """Handle 404 errors"""
+    discord_logger.log_user_action(
+        action="404 Page Not Found",
+        ip=request.remote_addr,
+        details={"path": request.path, "method": request.method}
+    )
+    return render_template('error.html', error_code=404, error_message="Page Not Found"), 404
 
 class DatabaseManager:
     def __init__(self, db_path):
@@ -1300,6 +1321,14 @@ def update_invoice(invoice_id):
         table_name='Invoices',
         record_id=invoice_id)
         
+        # Log to Discord if payment status changed to paid
+        if payment_status == 'paid':
+            discord_logger.log_invoice_paid(
+                invoice_id=invoice_id,
+                amount=amount_incl,  # Total amount including BTW
+                payment_date=invoice_date
+            )
+        
         flash(f'Invoice {invoice_id} updated successfully!', 'success')
         
         # Return success for AJAX
@@ -1824,11 +1853,27 @@ def mark_btw_paid(payment_id):
     try:
         current_date = datetime.now().strftime('%Y-%m-%d')
         
+        # Get payment details before updating for Discord log
+        payment_details = db_manager.execute_query("""
+            SELECT quarter, year, amount_due
+            FROM btw_quarterly_payments 
+            WHERE id = ?
+        """, (payment_id,))
+        
         db_manager.execute_update("""
             UPDATE btw_quarterly_payments 
             SET status = 'paid', actual_payment_date = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         """, (current_date, payment_id))
+        
+        # Log to Discord
+        if payment_details:
+            quarter_info = f"Q{payment_details['quarter']} {payment_details['year']}"
+            discord_logger.log_btw_payment(
+                quarter=quarter_info,
+                amount=payment_details['amount_due'],
+                status='paid'
+            )
         
         flash('BTW payment marked as paid!', 'success')
         
@@ -3662,6 +3707,13 @@ def create_invoice():
                 record_id=invoice_number
             )
             
+            # Log to Discord
+            discord_logger.log_invoice_created(
+                invoice_id=invoice_number,
+                amount=incl,  # Total amount including BTW
+                client=None
+            )
+            
             flash(f'Invoice {invoice_number} generated successfully! Amount: €{excl:.2f} (Excl), €{incl:.2f} (Incl)', 'success')
             
             # Return the Excel file for download
@@ -3815,5 +3867,18 @@ def utility_processor():
     )
 
 if __name__ == '__main__':
-    app.run(debug=app.config['DEBUG'], host=app.config['HOST'], port=app.config['PORT'])
+    # Log application startup to Discord
+    discord_logger.log_app_startup(
+        version="2.0",
+        host=app.config['HOST'],
+        port=app.config['PORT']
+    )
+    
+    try:
+        app.run(debug=app.config['DEBUG'], host=app.config['HOST'], port=app.config['PORT'])
+    except KeyboardInterrupt:
+        discord_logger.log_app_shutdown(reason="Manual shutdown (Ctrl+C)")
+    except Exception as e:
+        discord_logger.log_critical_error("Application startup failed", str(e))
+        raise
 # Test deployment trigger
