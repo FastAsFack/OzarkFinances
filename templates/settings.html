@@ -159,6 +159,104 @@
 
 
 
+    <!-- Template Management Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none p-0 text-light" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#templateManagement" 
+                                aria-expanded="true" aria-controls="templateManagement">
+                            <i class="fas fa-file-excel me-2"></i>Invoice Template Management
+                            <i class="fas fa-chevron-down ms-2 collapse-icon"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse show" id="templateManagement">
+                    <div class="card-body">
+                        <p class="text-muted mb-4">Upload and manage your Excel invoice template for generating professional invoices.</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-info-circle me-2"></i>Current Template Status</h6>
+                                <div id="template-status">
+                                    {% if template_status.exists %}
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle me-2"></i><strong>Template Ready</strong>
+                                            <br><small><strong>Uploaded:</strong> {{ template_status.upload_date }}</small>
+                                            <br><small><strong>Size:</strong> {{ "%.1f"|format(template_status.file_size/1024) }} KB</small>
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i><strong>No template uploaded</strong>
+                                            <br><small>Please upload your Template.xlsx file to enable Excel invoice generation.</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-upload me-2"></i>Upload New Template</h6>
+                                <form action="{{ url_for('upload_template') }}" method="post" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <input type="file" class="form-control" name="template_file" accept=".xlsx" required>
+                                        <div class="form-text">Select your Template.xlsx file (Excel format only)</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-upload me-2"></i>Upload Template
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <h6><i class="fas fa-cogs me-2"></i>Template Configuration</h6>
+                                <p class="text-muted">
+                                    Your uploaded template will be used to generate Excel invoices with the following cell mappings:
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card bg-dark border-secondary">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title"><span class="badge bg-info">C13</span></h6>
+                                                <p class="card-text">Invoice Number</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card bg-dark border-secondary">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title"><span class="badge bg-info">C14</span></h6>
+                                                <p class="card-text">Invoice Date</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card bg-dark border-secondary">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title"><span class="badge bg-info">F18</span></h6>
+                                                <p class="card-text">Amount (Excl. BTW)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-lightbulb me-2"></i>
+                                        <strong>Usage:</strong> After uploading your template, you can generate Excel invoices by visiting any invoice detail page and clicking the "Generate Excel" button.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Invoice Display Settings -->
     <div class="row">
         <div class="col-12">

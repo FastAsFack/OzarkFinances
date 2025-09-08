@@ -18,6 +18,7 @@ import traceback
 from config import config
 import tempfile
 import zipfile
+import shutil
 from werkzeug.utils import secure_filename
 from audit_tracker import audit_tracker, audit_log, audit_transaction
 from discord_logger import discord_logger, log_errors, log_activity
@@ -298,11 +299,12 @@ def create_excel_from_template(invoice_data, image_path=None):
     """
     Create an Excel file from your existing template with invoice data and optional image
     Returns the path to the generated file
-    (Updated to use your actual Excel template)
+    (Updated to prioritize uploaded template from Generation_Templates)
     """
     try:
-        # Look for template file in common locations
+        # Look for template file, prioritizing uploaded template
         template_paths = [
+            os.path.join(app.static_folder, 'Generation_Templates', 'Template.xlsx'),  # Uploaded template (priority)
             'Template.xlsx',  # Current directory
             'templates/Template.xlsx',  # Templates subdirectory
             'static/Template.xlsx',  # Static files
@@ -319,12 +321,20 @@ def create_excel_from_template(invoice_data, image_path=None):
         
         if template_path:
             # Load your existing template
-            logger.info(f"Loading template from: {template_path}")
+            if template_path.endswith('Generation_Templates/Template.xlsx'):
+                logger.info(f"✅ Using uploaded template from: {template_path}")
+                discord_logger.log_user_action("Template Used", 
+                                             details={"source": "uploaded_template", "path": template_path})
+            else:
+                logger.info(f"📁 Using fallback template from: {template_path}")
+                discord_logger.log_user_action("Template Used", 
+                                             details={"source": "fallback_template", "path": template_path})
             workbook = openpyxl.load_workbook(template_path)
             worksheet = workbook.active
         else:
             # Fallback: create a basic template if not found
-            logger.warning("Template.xlsx not found, creating basic template")
+            logger.warning("❌ No template found, creating basic template")
+            discord_logger.log_system_event("Template Warning", "No template found, creating basic structure")
             workbook = openpyxl.Workbook()
             worksheet = workbook.active
             worksheet.title = "Invoice"
@@ -380,6 +390,71 @@ def create_excel_from_template(invoice_data, image_path=None):
     except Exception as e:
         logger.error(f"Error creating Excel file: {e}")
         return None
+
+# =============================================================================
+# TEMPLATE MANAGEMENT FUNCTIONS
+# =============================================================================
+
+def create_generation_templates_dir():
+    """Create the Generation_Templates directory if it doesn't exist"""
+    template_dir = os.path.join(app.static_folder, 'Generation_Templates')
+    if not os.path.exists(template_dir):
+        os.makedirs(template_dir)
+        discord_logger.log_database_operation("Directory Created", "Generation_Templates")
+    return template_dir
+
+def upload_invoice_template(file):
+    """Handle template file upload with basic validation (Option A)"""
+    try:
+        # Basic validation - check if it's an Excel file
+        if not file.filename.endswith('.xlsx'):
+            return False, "File must be an Excel file (.xlsx)"
+        
+        # Create directory if needed
+        template_dir = create_generation_templates_dir()
+        template_path = os.path.join(template_dir, 'Template.xlsx')
+        
+        # Save the uploaded file
+        file.save(template_path)
+        
+        # Basic Excel validation - try to open it
+        try:
+            wb = openpyxl.load_workbook(template_path)
+            wb.close()
+        except Exception as e:
+            os.remove(template_path)
+            return False, f"Invalid Excel file: {str(e)}"
+        
+        # Log success
+        discord_logger.log_file_operation("Template Upload", file.filename, True, 
+                                         file_size=os.path.getsize(template_path))
+        
+        return True, "Template uploaded successfully"
+        
+    except Exception as e:
+        discord_logger.log_error(e, "Template upload failed")
+        return False, f"Upload failed: {str(e)}"
+
+def get_template_status():
+    """Get current template information (exists, upload date, size)"""
+    template_dir = os.path.join(app.static_folder, 'Generation_Templates')
+    template_path = os.path.join(template_dir, 'Template.xlsx')
+    
+    if not os.path.exists(template_path):
+        return {
+            'exists': False,
+            'upload_date': None,
+            'file_size': 0,
+            'status': 'No template uploaded'
+        }
+    
+    stat = os.stat(template_path)
+    return {
+        'exists': True,
+        'upload_date': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S'),
+        'file_size': stat.st_size,
+        'status': 'Template ready'
+    }
 
 # =============================================================================
 # HEALTH CHECK ENDPOINT (for Docker and monitoring)
@@ -3449,6 +3524,7 @@ def settings():
         return render_template('settings.html',
                              app_stats=app_stats,
                              config_info=config_info,
+                             template_status=get_template_status(),
                              format_euro=format_euro)
                              
     except Exception as e:
@@ -3457,7 +3533,40 @@ def settings():
         return render_template('settings.html',
                              app_stats={},
                              config_info={},
+                             template_status=get_template_status(),
                              format_euro=format_euro)
+
+@app.route('/template/upload', methods=['POST'])
+def upload_template():
+    """Handle template file upload"""
+    if 'template_file' not in request.files:
+        flash('No file selected', 'error')
+        return redirect(url_for('settings'))
+    
+    file = request.files['template_file']
+    if file.filename == '':
+        flash('No file selected', 'error')
+        return redirect(url_for('settings'))
+    
+    success, message = upload_invoice_template(file)
+    flash(message, 'success' if success else 'error')
+    return redirect(url_for('settings'))
+
+@app.route('/template/status')
+def template_status():
+    """Get template status (for AJAX calls)"""
+    return jsonify(get_template_status())
+
+@app.route('/static/Generation_Templates/Template.xlsx')
+def serve_template():
+    """Serve the uploaded template file for preview"""
+    template_dir = os.path.join(app.static_folder, 'Generation_Templates')
+    template_path = os.path.join(template_dir, 'Template.xlsx')
+    
+    if not os.path.exists(template_path):
+        return "Template not found", 404
+    
+    return send_file(template_path, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 def get_database_size():
     """Get the size of the database file in MB"""
