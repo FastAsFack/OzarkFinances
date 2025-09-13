@@ -1417,7 +1417,7 @@ def update_invoice(invoice_id):
         flash(f'Invoice {invoice_id} updated successfully!', 'success')
         
         # Return success for AJAX
-        if request.headers.get('Content-Type') == 'application/json':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'status': 'success', 'message': f'Invoice {invoice_id} updated successfully!'})
         
         return redirect(url_for('invoices'))
@@ -1426,7 +1426,7 @@ def update_invoice(invoice_id):
         logger.error(f"Error updating invoice {invoice_id}: {e}")
         error_message = f'Error updating invoice: {str(e)}'
         
-        if request.headers.get('Content-Type') == 'application/json':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'status': 'error', 'message': error_message}), 500
         
         flash(error_message, 'error')
