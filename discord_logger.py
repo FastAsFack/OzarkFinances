@@ -8,23 +8,25 @@ import json
 import logging
 import asyncio
 from datetime import datetime, timezone
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 import traceback
 from functools import wraps
 import os
-from flask import request, session, g
+import time
+import threading
+from queue import Queue, Empty
+from flask import request, session, g, has_request_context
+from config import Config
 
 class DiscordLogger:
     """Main Discord logging class with support for multiple channels"""
     
     def __init__(self):
-        # Webhook URLs for different channels
-        self.webhooks = {
-            'finance': 'https://discord.com/api/webhooks/1411770837710802964/4-D4P9ljIskDIbM_g69b1xABtEv6GSrYcR2njYevGReMvLAUpfPmYmRQOBcCrnRsLLEp',
-            'system': 'https://discord.com/api/webhooks/1411771095245390036/wPndYq9E6ZXMEiFV2BVyA0tdzqJ9Oem9sSavOuJjKSNggfd5g6KO6eEwduBP8VJLGlLK',
-            'errors': 'https://discord.com/api/webhooks/1411771235422965920/vtLynm4o2FHRCMK8lFn5uP6TevDo4utSx74gc4usnbWX6QHacJIkVK24PD-KAXdglTub',
-            'activity': 'https://discord.com/api/webhooks/1411771395204972604/Ovu44-8_unmKI6eHlb_qd9SXJtQBgLAfQ1Me2BTbaMy9IiiM4DFvQBFbI9hN9S_SWkM-'
-        }
+        # Load configuration
+        self.config = Config()
+        
+        # Webhook URLs from configuration
+        self.webhooks = self.config.DISCORD_WEBHOOKS
         
         # Color codes for different message types
         self.colors = {
@@ -58,11 +60,79 @@ class DiscordLogger:
             'performance': '📊'
         }
         
-        # Configuration
-        self.enabled = True
-        self.rate_limit = 10  # Max messages per minute
+        # Configuration from config.py
+        self.enabled = self.config.DISCORD_LOGGING_ENABLED
+        self.rate_limit = self.config.DISCORD_RATE_LIMIT
+        self.features = self.config.DISCORD_LOG_FEATURES
+        self.retry_attempts = self.config.DISCORD_RETRY_ATTEMPTS
+        self.retry_delay = self.config.DISCORD_RETRY_DELAY
+        self.timeout = self.config.DISCORD_TIMEOUT
+        
+        # Rate limiting
         self.message_count = 0
         self.last_reset = datetime.now()
+        
+        # Message queue for offline reliability
+        self.message_queue = Queue(maxsize=self.config.DISCORD_QUEUE_SIZE)
+        self.queue_worker_running = False
+        self._start_queue_worker()
+        
+    def _start_queue_worker(self):
+        """Start background thread to process message queue"""
+        if not self.queue_worker_running:
+            self.queue_worker_running = True
+            worker_thread = threading.Thread(target=self._queue_worker, daemon=True)
+            worker_thread.start()
+    
+    def _queue_worker(self):
+        """Background worker to process queued messages"""
+        while self.queue_worker_running:
+            try:
+                # Get message from queue with timeout
+                webhook_url, embed, username, retries = self.message_queue.get(timeout=1)
+                
+                # Try to send the message
+                success = self._send_webhook_direct(webhook_url, embed, username)
+                
+                if not success and retries > 0:
+                    # Re-queue with fewer retries
+                    try:
+                        self.message_queue.put_nowait((webhook_url, embed, username, retries - 1))
+                    except:
+                        pass  # Queue full, drop message
+                        
+                self.message_queue.task_done()
+                
+            except Empty:
+                continue
+            except Exception as e:
+                logging.error(f"Queue worker error: {e}")
+    
+    def _get_request_context(self) -> Dict[str, Any]:
+        """Extract context information from Flask request"""
+        context = {}
+        
+        if has_request_context():
+            try:
+                # Request information
+                context['method'] = request.method
+                context['endpoint'] = request.endpoint
+                context['url'] = request.url
+                context['remote_addr'] = request.remote_addr
+                context['user_agent'] = request.headers.get('User-Agent', 'Unknown')[:100]
+                
+                # Session information
+                if session:
+                    context['session_id'] = session.get('_permanent', 'temp')
+                    
+                # Additional headers
+                context['referer'] = request.headers.get('Referer', 'Direct')[:100]
+                context['content_type'] = request.headers.get('Content-Type', 'N/A')
+                
+            except Exception as e:
+                context['context_error'] = str(e)
+                
+        return context
         
     def _check_rate_limit(self) -> bool:
         """Check if we're within rate limits"""
@@ -100,10 +170,25 @@ class DiscordLogger:
         return embed
     
     def _send_webhook(self, webhook_url: str, embed: dict, username: str = None) -> bool:
-        """Send message to Discord webhook"""
+        """Send message to Discord webhook with retry and queueing"""
         if not self.enabled or not self._check_rate_limit():
             return False
             
+        # Try immediate send first
+        success = self._send_webhook_direct(webhook_url, embed, username)
+        
+        if not success:
+            # Queue for retry
+            try:
+                self.message_queue.put_nowait((webhook_url, embed, username, self.retry_attempts))
+            except:
+                # Queue full, log to file as fallback
+                logging.error("Discord queue full, message dropped")
+                
+        return success
+    
+    def _send_webhook_direct(self, webhook_url: str, embed: dict, username: str = None) -> bool:
+        """Send message directly to Discord webhook"""
         try:
             payload = {
                 "embeds": [embed],
@@ -113,7 +198,7 @@ class DiscordLogger:
             response = requests.post(
                 webhook_url,
                 json=payload,
-                timeout=10
+                timeout=self.timeout
             )
             
             return response.status_code == 204
@@ -127,6 +212,9 @@ class DiscordLogger:
     
     def log_invoice_created(self, invoice_id: str, amount: float, client: str = None):
         """Log new invoice creation"""
+        if not self.features.get('finance_events', True):
+            return
+            
         fields = [
             {"name": "Invoice ID", "value": f"#{invoice_id}", "inline": True},
             {"name": "Amount", "value": f"€{amount:,.2f}", "inline": True},
@@ -135,6 +223,11 @@ class DiscordLogger:
         
         if client:
             fields.append({"name": "Client", "value": client, "inline": False})
+        
+        # Add request context
+        context = self._get_request_context()
+        if context.get('remote_addr'):
+            fields.append({"name": "IP Address", "value": context['remote_addr'], "inline": True})
             
         embed = self._create_embed(
             title=f"{self.emojis['invoice_created']} New Invoice Created",
@@ -275,11 +368,35 @@ class DiscordLogger:
         
         self._send_webhook(self.webhooks['system'], embed)
     
+    def log_system_event(self, event: str, description: str = None, details: dict = None):
+        """Log general system events"""
+        fields = [
+            {"name": "Event", "value": event, "inline": True}
+        ]
+        
+        if description:
+            fields.append({"name": "Description", "value": description, "inline": False})
+            
+        if details:
+            for key, value in details.items():
+                fields.append({"name": key.title(), "value": str(value), "inline": True})
+        
+        embed = self._create_embed(
+            title=f"{self.emojis['system_start']} System Event",
+            color=self.colors['system'],
+            fields=fields
+        )
+        
+        self._send_webhook(self.webhooks['system'], embed)
+    
     # ===== ERROR LOGGING =====
     
     def log_error(self, error: Exception, context: str = None, user: str = None, 
                  file_name: str = None, line_number: int = None):
         """Log application errors"""
+        if not self.features.get('error_events', True):
+            return
+            
         fields = [
             {"name": "Error Type", "value": type(error).__name__, "inline": True},
             {"name": "Message", "value": str(error)[:100], "inline": False}
@@ -294,6 +411,15 @@ class DiscordLogger:
             if line_number:
                 location += f":{line_number}"
             fields.append({"name": "Location", "value": location, "inline": True})
+        
+        # Add request context
+        request_context = self._get_request_context()
+        if request_context.get('remote_addr'):
+            fields.append({"name": "IP Address", "value": request_context['remote_addr'], "inline": True})
+        if request_context.get('endpoint'):
+            fields.append({"name": "Endpoint", "value": request_context['endpoint'], "inline": True})
+        if request_context.get('method'):
+            fields.append({"name": "Method", "value": request_context['method'], "inline": True})
             
         # Add stack trace (first 3 lines)
         tb_lines = traceback.format_tb(error.__traceback__)
@@ -351,18 +477,35 @@ class DiscordLogger:
     
     def log_user_action(self, action: str, user: str = None, details: dict = None, ip: str = None):
         """Log user activities"""
+        if not self.features.get('user_activity', True):
+            return
+            
         fields = [
             {"name": "Action", "value": action, "inline": True}
         ]
         
+        # Auto-detect request context if not provided
+        context = self._get_request_context()
+        
         if user:
             fields.append({"name": "User", "value": user, "inline": True})
-        if ip:
-            fields.append({"name": "IP Address", "value": ip, "inline": True})
+        
+        # Use provided IP or auto-detect
+        user_ip = ip or context.get('remote_addr')
+        if user_ip:
+            fields.append({"name": "IP Address", "value": user_ip, "inline": True})
+        
+        # Add request details
+        if context.get('method'):
+            fields.append({"name": "Method", "value": context['method'], "inline": True})
+        if context.get('endpoint'):
+            fields.append({"name": "Endpoint", "value": context['endpoint'], "inline": True})
+        if context.get('user_agent'):
+            fields.append({"name": "User Agent", "value": context['user_agent'][:50], "inline": False})
             
         if details:
             for key, value in details.items():
-                fields.append({"name": key.title(), "value": str(value), "inline": True})
+                fields.append({"name": key.title(), "value": str(value)[:100], "inline": True})
         
         embed = self._create_embed(
             title=f"{self.emojis['user_login']} User Activity",
@@ -441,7 +584,7 @@ class DiscordLogger:
 discord_logger = DiscordLogger()
 
 # Decorator for automatic error logging
-def log_errors(channel: str = 'errors'):
+def log_errors(context: str = None, channel: str = 'errors'):
     """Decorator to automatically log function errors"""
     def decorator(func):
         @wraps(func)
@@ -449,9 +592,12 @@ def log_errors(channel: str = 'errors'):
             try:
                 return func(*args, **kwargs)
             except Exception as e:
+                # Get additional context
+                error_context = context or f"Function: {func.__name__}"
+                
                 discord_logger.log_error(
                     error=e,
-                    context=f"Function: {func.__name__}",
+                    context=error_context,
                     file_name=func.__code__.co_filename,
                     line_number=func.__code__.co_firstlineno
                 )
@@ -460,23 +606,62 @@ def log_errors(channel: str = 'errors'):
     return decorator
 
 # Decorator for logging function calls
-def log_activity(action: str, channel: str = 'activity'):
+def log_activity(action: str = None, channel: str = 'activity', log_success: bool = True, log_failure: bool = True):
     """Decorator to log function calls as user activity"""
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
+            activity_name = action or f"{func.__name__}"
+            
             try:
                 result = func(*args, **kwargs)
-                discord_logger.log_user_action(
-                    action=action,
-                    details={"function": func.__name__, "status": "success"}
-                )
+                
+                if log_success:
+                    discord_logger.log_user_action(
+                        action=f"{activity_name} - Success",
+                        details={"function": func.__name__, "status": "success"}
+                    )
                 return result
+                
             except Exception as e:
-                discord_logger.log_user_action(
-                    action=action,
-                    details={"function": func.__name__, "status": "failed", "error": str(e)}
+                if log_failure:
+                    discord_logger.log_user_action(
+                        action=f"{activity_name} - Failed",
+                        details={"function": func.__name__, "status": "failed", "error": str(e)[:100]}
+                    )
+                raise
+        return wrapper
+    return decorator
+
+# Decorator for performance monitoring
+def log_performance(threshold_seconds: float = 1.0):
+    """Decorator to log slow function execution"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            
+            try:
+                result = func(*args, **kwargs)
+                execution_time = time.time() - start_time
+                
+                if execution_time > threshold_seconds:
+                    discord_logger.log_performance_warning(
+                        metric=f"Function Execution Time: {func.__name__}",
+                        value=execution_time,
+                        threshold=threshold_seconds,
+                        unit="s"
+                    )
+                
+                return result
+                
+            except Exception as e:
+                execution_time = time.time() - start_time
+                discord_logger.log_error(
+                    error=e,
+                    context=f"Performance monitored function: {func.__name__} (took {execution_time:.2f}s)"
                 )
                 raise
+                
         return wrapper
     return decorator

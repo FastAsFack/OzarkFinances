@@ -37,6 +37,34 @@ class Config:
     FACTUREN_PATH = os.environ.get('FACTUREN_PATH') or 'G:/My Drive/Bakker Services/Facturen'
     ADMINISTRATIE_PATH = os.environ.get('ADMINISTRATIE_PATH') or 'G:/My Drive/Bakker Services/Administratie'
     
+    # Discord Logging Configuration
+    DISCORD_LOGGING_ENABLED = os.environ.get('DISCORD_LOGGING_ENABLED', 'True').lower() == 'true'
+    DISCORD_RATE_LIMIT = int(os.environ.get('DISCORD_RATE_LIMIT', '10'))  # messages per minute
+    
+    # Discord Webhook URLs (use environment variables for security)
+    DISCORD_WEBHOOKS = {
+        'finance': os.environ.get('DISCORD_WEBHOOK_FINANCE', 'https://discord.com/api/webhooks/1411770837710802964/4-D4P9ljIskDIbM_g69b1xABtEv6GSrYcR2njYevGReMvLAUpfPmYmRQOBcCrnRsLLEp'),
+        'system': os.environ.get('DISCORD_WEBHOOK_SYSTEM', 'https://discord.com/api/webhooks/1411771095245390036/wPndYq9E6ZXMEiFV2BVyA0tdzqJ9Oem9sSavOuJjKSNggfd5g6KO6eEwduBP8VJLGlLK'),
+        'errors': os.environ.get('DISCORD_WEBHOOK_ERRORS', 'https://discord.com/api/webhooks/1411771235422965920/vtLynm4o2FHRCMK8lFn5uP6TevDo4utSx74gc4usnbWX6QHacJIkVK24PD-KAXdglTub'),
+        'activity': os.environ.get('DISCORD_WEBHOOK_ACTIVITY', 'https://discord.com/api/webhooks/1411771395204972604/Ovu44-8_unmKI6eHlb_qd9SXJtQBgLAfQ1Me2BTbaMy9IiiM4DFvQBFbI9hN9S_SWkM-')
+    }
+    
+    # Discord Logging Feature Toggles
+    DISCORD_LOG_FEATURES = {
+        'finance_events': os.environ.get('DISCORD_LOG_FINANCE', 'True').lower() == 'true',
+        'system_events': os.environ.get('DISCORD_LOG_SYSTEM', 'True').lower() == 'true',
+        'error_events': os.environ.get('DISCORD_LOG_ERRORS', 'True').lower() == 'true',
+        'user_activity': os.environ.get('DISCORD_LOG_ACTIVITY', 'True').lower() == 'true',
+        'performance_warnings': os.environ.get('DISCORD_LOG_PERFORMANCE', 'True').lower() == 'true',
+        'daily_summaries': os.environ.get('DISCORD_LOG_SUMMARIES', 'True').lower() == 'true'
+    }
+    
+    # Discord Retry and Reliability Settings
+    DISCORD_RETRY_ATTEMPTS = int(os.environ.get('DISCORD_RETRY_ATTEMPTS', '3'))
+    DISCORD_RETRY_DELAY = float(os.environ.get('DISCORD_RETRY_DELAY', '1.0'))  # seconds
+    DISCORD_TIMEOUT = int(os.environ.get('DISCORD_TIMEOUT', '10'))  # seconds
+    DISCORD_QUEUE_SIZE = int(os.environ.get('DISCORD_QUEUE_SIZE', '100'))  # max queued messages
+    
     @staticmethod
     def init_app(app):
         """Initialize application with this config"""

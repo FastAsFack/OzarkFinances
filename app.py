@@ -21,7 +21,7 @@ import zipfile
 import shutil
 from werkzeug.utils import secure_filename
 from audit_tracker import audit_tracker, audit_log, audit_transaction
-from discord_logger import discord_logger, log_errors, log_activity
+from discord_logger import discord_logger, log_errors, log_activity, log_performance
 import math
 import statistics
 
@@ -295,6 +295,8 @@ def get_next_invoice_number():
         # Fallback to timestamp-based number
         return str(int(datetime.now().timestamp()))[:-3]
 
+@log_errors(context="Excel Generation")
+@log_performance(threshold_seconds=5.0)
 def create_excel_from_template(invoice_data, image_path=None):
     """
     Create an Excel file from your existing template with invoice data and optional image
@@ -403,6 +405,8 @@ def create_generation_templates_dir():
         discord_logger.log_database_operation("Directory Created", "Generation_Templates")
     return template_dir
 
+@log_errors(context="Template Upload")
+@log_activity(action="Upload Template")
 def upload_invoice_template(file):
     """Handle template file upload with basic validation (Option A)"""
     try:
@@ -1323,6 +1327,9 @@ def edit_invoice(invoice_id):
         return redirect(url_for('invoices'))
 
 @app.route('/invoices/edit/<invoice_id>', methods=['POST'])
+@log_errors(context="Invoice Edit")
+@log_activity(action="Edit Invoice")
+@log_performance(threshold_seconds=2.0)
 def update_invoice(invoice_id):
     """Update invoice with validation"""
     try:
@@ -1603,6 +1610,8 @@ def withdraws():
                              })
 
 @app.route('/withdraws/add', methods=['POST'])
+@log_errors(context="Add Withdraw")
+@log_activity(action="Add Withdraw")
 def add_withdraw():
     """Add a new withdraw entry with validation"""
     try:
@@ -1933,6 +1942,8 @@ def update_btw_payment(payment_id):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/btw/mark-paid/<int:payment_id>', methods=['POST'])
+@log_errors(context="BTW Payment")
+@log_activity(action="Mark BTW Paid")
 def mark_btw_paid(payment_id):
     """Mark BTW payment as paid with current date"""
     try:
